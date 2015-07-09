@@ -3,6 +3,22 @@
     <title>Pants Setup</title>
   </head>
   <body>
-    Pants Setup
+    To setup pants in your repo:
+    <pre>
+      curl https://pantsbuild.github.io/setup/pants.sh > pants
+      chmod +x pants
+      touch pants.ini
+    </pre>
+    
+    The first time you run the new <code>./pants</code> script it will install
+    the latest pants version and then run it.
+    On subsequent runs it will find the already installed pants and run it.
+    
+    To pin the pants version, modify the PANTS_REQUIREMENT variable in the
+    <a href="https://github.com/pantsbuild/setup/blob/gh-pages/pants.sh#L7">pants script</a>
+    like so:
+    <pre>
+      PANTS_REQUIREMENT="pantsbuild.pants==0.0.34"
+    </pre>
   </body>
 </html>
