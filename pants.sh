@@ -2,11 +2,11 @@
 
 PYTHON=${PYTHON:-$(which python2.7)}
 
-PANTS_HOME="${PANTS_HOME:-${HOME}/.pants.d}"
+PANTS_HOME="${PANTS_HOME:-${HOME}/.cache/pants/setup}"
 PANTS_BOOTSTRAP="${PANTS_HOME}/bootstrap"
 PANTS_REQUIREMENT="pantsbuild.pants"
 
-VENV_VERSION=1.11.6
+VENV_VERSION=13.1.0
 
 VENV_PACKAGE=virtualenv-${VENV_VERSION}
 VENV_TARBALL=${VENV_PACKAGE}.tar.gz
@@ -16,7 +16,7 @@ VENV_TARBALL=${VENV_PACKAGE}.tar.gz
 # otherwise create venv and re-exec self
 
 function tempdir {
-  mktemp -d -p "$1" pants.XXXXXX 
+  mktemp -d "$1"/pants.XXXXXX
 }
 
 # TODO(John Sirois): GC race loser tmp dirs leftover from bootstrap_XXX
@@ -32,7 +32,7 @@ function bootstrap_venv {
       curl -O https://pypi.python.org/packages/source/v/virtualenv/${VENV_TARBALL} && \
       tar -xzf ${VENV_TARBALL} && \
       ln -s "${staging_dir}/${VENV_PACKAGE}" "${staging_dir}/latest" && \
-      mv -T "${staging_dir}/latest" "${PANTS_BOOTSTRAP}/${VENV_PACKAGE}"
+      mv "${staging_dir}/latest" "${PANTS_BOOTSTRAP}/${VENV_PACKAGE}"
     ) 1>&2
   fi
   echo "${PANTS_BOOTSTRAP}/${VENV_PACKAGE}"
