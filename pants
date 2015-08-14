@@ -4,16 +4,19 @@ PYTHON=${PYTHON:-$(which python2.7)}
 
 PANTS_HOME="${PANTS_HOME:-${HOME}/.cache/pants/setup}"
 PANTS_BOOTSTRAP="${PANTS_HOME}/bootstrap"
-PANTS_REQUIREMENT="pantsbuild.pants"
 
 VENV_VERSION=13.1.0
 
 VENV_PACKAGE=virtualenv-${VENV_VERSION}
 VENV_TARBALL=${VENV_PACKAGE}.tar.gz
 
-# grab pants version from pants.ini or fail
-# check for a venv via a naming/path convention and execute if found
-# otherwise create venv and re-exec self
+# The high-level flow:
+# 1.) Grab pants version from pants.ini or default to latest.
+# 2.) Check for a venv via a naming/path convention and execute if found.
+# 3.) Otherwise create venv and re-exec self.
+#
+# After that pants itself will handle making sure any requested plugins 
+# are installed and up to date.
 
 function tempdir {
   mktemp -d "$1"/pants.XXXXXX
@@ -39,26 +42,31 @@ function bootstrap_venv {
 }
 
 function bootstrap_pants {
-  requirement="${PANTS_REQUIREMENT}"
-  if [[ -n "$1" ]]
+  pants_requirement="pantsbuild.pants"
+  pants_version=$(
+    grep -E "^[[:space:]]*pants_version" pants.ini 2>/dev/null | \
+      sed -E 's|^[[:space:]]*pants_version[:=][[:space:]]*([^[:space:]]+)|\1|'
+  )
+  if [[ -n "${pants_version}" ]]
   then
-    requirement="${requirement}==$1"
+    pants_requirement="${pants_requirement}==${pants_version}"
+  else
+    pants_version="unspecified"
   fi
   
-  pants_version="${1:-latest}"
-  if [[ ! -d "${PANTS_BOOTSTRAP}/${PANTS_REQUIREMENT}-${pants_version}" ]]
+  if [[ ! -d "${PANTS_BOOTSTRAP}/${pants_version}" ]]
   then 
     (
       venv_path="$(bootstrap_venv)" && \
       staging_dir=$(tempdir "${PANTS_BOOTSTRAP}") && \
       "${PYTHON}" "${venv_path}/virtualenv.py" "${staging_dir}/install" && \
       source "${staging_dir}/install/bin/activate" && \
-      pip install "${requirement}" && \
+      pip install "${pants_requirement}" && \
       ln -s "${staging_dir}/install" "${staging_dir}/${pants_version}" && \
-      mv -T "${staging_dir}/${pants_version}" "${PANTS_BOOTSTRAP}/${PANTS_REQUIREMENT}-${pants_version}"
+      mv "${staging_dir}/${pants_version}" "${PANTS_BOOTSTRAP}/${pants_version}"
     ) 1>&2
   fi
-  echo "${PANTS_BOOTSTRAP}/${PANTS_REQUIREMENT}-${pants_version}"
+  echo "${PANTS_BOOTSTRAP}/${pants_version}"
 }
 
 pants_dir=$(bootstrap_pants) && \

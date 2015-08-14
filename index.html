@@ -5,20 +5,42 @@
   <body>
     To setup pants in your repo:
     <pre>
-      curl https://pantsbuild.github.io/setup/pants.sh > pants
+      curl -O https://pantsbuild.github.io/setup/pants
       chmod +x pants
       touch pants.ini
     </pre>
+    
+    The only requirement is that you have a python 2.7 interpreter somewhere on
+    your PATH.
     
     The first time you run the new <code>./pants</code> script it will install
     the latest pants version and then run it.
     On subsequent runs it will find the already installed pants and run it.
     
-    To pin the pants version, modify the PANTS_REQUIREMENT variable in the
-    <a href="https://github.com/pantsbuild/setup/blob/gh-pages/pants.sh#L7">pants script</a>
-    like so:
+    To pin the pants version, add an entry like so to pants.ini:
     <pre>
-      PANTS_REQUIREMENT="pantsbuild.pants==0.0.34"
+      [DEFAULT]
+      pants_version: 0.0.42
     </pre>
+
+    If you use pants plugins published to pypi you can configure them as
+    follows, also in pants.ini:
+    <pre>
+      [DEFAULT]
+      pants_version: 0.0.42
+
+      plugins: [
+          'pantsbuild.pants.contrib.go==0.0.42',
+          'pantsbuild.pants.contrib.scrooge==0.0.42',
+        ]
+    </pre>
+
+    Pants will notice you changed your plugins and install them.
+
+    NB: The formatting of the plugins list is important; all lines below the
+    `plugins:` line must be indented by at least one white space to form logical
+    continuation lines.  This is standard for python ini files, see
+    <a href="http://tools.ietf.org/html/rfc822.html#section-3.1">RFC #822</a>
+    section 3.1.1 for the full rules python uses to parse ini file entries.
   </body>
 </html>
