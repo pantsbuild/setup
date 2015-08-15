@@ -15,7 +15,7 @@ VENV_TARBALL=${VENV_PACKAGE}.tar.gz
 # 2.) Check for a venv via a naming/path convention and execute if found.
 # 3.) Otherwise create venv and re-exec self.
 #
-# After that pants itself will handle making sure any requested plugins 
+# After that pants itself will handle making sure any requested plugins
 # are installed and up to date.
 
 function tempdir {
