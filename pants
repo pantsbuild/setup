@@ -8,7 +8,7 @@
 # that any developer can check out your code and be building it with
 # pants with no prior setup needed.
 #
-# You can learn more here: pantsbuild.github.io/setup
+# You can learn more here: https://pantsbuild.github.io/setup
 # ====================================================================
 
 PYTHON=${PYTHON:-$(which python2.7)}
