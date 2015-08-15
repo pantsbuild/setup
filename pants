@@ -64,9 +64,9 @@ function bootstrap_pants {
   else
     pants_version="unspecified"
   fi
-  
+
   if [[ ! -d "${PANTS_BOOTSTRAP}/${pants_version}" ]]
-  then 
+  then
     (
       venv_path="$(bootstrap_venv)" && \
       staging_dir=$(tempdir "${PANTS_BOOTSTRAP}") && \
