@@ -22,17 +22,17 @@
     To pin the pants version, add an entry like so to pants.ini:
     <pre>
       [DEFAULT]
-      pants_version: 0.0.42
+      pants_version: 0.0.64
     </pre>
     If you use pants plugins published to pypi you can configure them as
     follows, also in pants.ini:
     <pre>
       [DEFAULT]
-      pants_version: 0.0.42
+      pants_version: 0.0.64
 
       plugins: [
-          'pantsbuild.pants.contrib.go==0.0.42',
-          'pantsbuild.pants.contrib.scrooge==0.0.42',
+          'pantsbuild.pants.contrib.go==%(pants_version)s',
+          'pantsbuild.pants.contrib.scrooge==%(pants_version)s',
         ]
     </pre>
     Pants will notice you changed your plugins and install them.
