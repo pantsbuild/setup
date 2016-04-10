@@ -21,14 +21,14 @@
     <p>
     To pin the pants version, add an entry like so to pants.ini:
     <pre>
-      [DEFAULT]
-      pants_version: 0.0.64
+      [GLOBAL]
+      pants_version: 0.0.81
     </pre>
     If you use pants plugins published to pypi you can configure them as
     follows, also in pants.ini:
     <pre>
-      [DEFAULT]
-      pants_version: 0.0.64
+      [GLOBAL]
+      pants_version: 0.0.81
 
       plugins: [
           'pantsbuild.pants.contrib.go==%(pants_version)s',
