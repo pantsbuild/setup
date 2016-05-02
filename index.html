@@ -6,7 +6,7 @@
     <p>
     To setup pants in your repo:
     <pre>
-      curl -O https://pantsbuild.github.io/setup/pants
+      curl -L -O https://pantsbuild.github.io/setup/pants
       chmod +x pants
       touch pants.ini
     </pre>
@@ -22,13 +22,13 @@
     To pin the pants version, add an entry like so to pants.ini:
     <pre>
       [GLOBAL]
-      pants_version: 0.0.81
+      pants_version: 1.0.0
     </pre>
     If you use pants plugins published to pypi you can configure them as
     follows, also in pants.ini:
     <pre>
       [GLOBAL]
-      pants_version: 0.0.81
+      pants_version: 1.0.0
 
       plugins: [
           'pantsbuild.pants.contrib.go==%(pants_version)s',
