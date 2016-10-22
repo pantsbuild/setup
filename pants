@@ -72,7 +72,7 @@ function bootstrap_pants {
     (
       venv_path="$(bootstrap_venv)" && \
       staging_dir=$(tempdir "${PANTS_BOOTSTRAP}") && \
-      "${PYTHON}" "${venv_path}/virtualenv.py" --no-download "${staging_dir}/install" && \
+      "${PYTHON}" "${venv_path}/virtualenv.py" --no-download --no-setuptools "${staging_dir}/install" && \
       "${staging_dir}/install/bin/python" "${staging_dir}/install/bin/pip" install "${pants_requirement}" && \
       ln -s "${staging_dir}/install" "${staging_dir}/${pants_version}" && \
       mv "${staging_dir}/${pants_version}" "${PANTS_BOOTSTRAP}/${pants_version}"
