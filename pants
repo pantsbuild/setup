@@ -23,10 +23,10 @@ VENV_VERSION=15.0.2
 # This requirement is installed alongside pantsbuild.pants to hack around
 # interpreters that have newer setuptools already installed, effectively
 # re-installing an older setuptools and pinning low to the version range
-# known to be ingestable by pants and pex. See:
+# known to be ingestable by both pants and pex. See:
 #   https://github.com/pantsbuild/pants/issues/3948
 #   https://github.com/pantsbuild/setup/issues/14
-SETUPTOOLS_REQUIREMENT="setuptools>=2.2,<20.11"
+SETUPTOOLS_REQUIREMENT="setuptools>=5.4.1,<20.11"
 
 VENV_PACKAGE=virtualenv-${VENV_VERSION}
 VENV_TARBALL=${VENV_PACKAGE}.tar.gz
