@@ -13,7 +13,8 @@
 
 set -e
 
-PYTHON=${PYTHON:-$(which python2.7)}
+PYVER=python2.7
+PYTHON=${PYTHON:-$(which ${PYVER})}
 
 PANTS_HOME="${PANTS_HOME:-${HOME}/.cache/pants/setup}"
 PANTS_BOOTSTRAP="${PANTS_HOME}/bootstrap-$(uname -s)-$(uname -m)"
@@ -91,4 +92,5 @@ function bootstrap_pants {
   echo "${PANTS_BOOTSTRAP}/${pants_version}"
 }
 pants_dir=$(bootstrap_pants) && \
-exec "${pants_dir}/bin/python" "${pants_dir}/bin/pants" "$@"
+exec exec env PYTHONPATH="${pants_dir}/lib/${PYVER}:${pants_dir}/lib/${PYVER}/site-packages" \
+"${pants_dir}/bin/python" "${pants_dir}/bin/pants" "$@"
