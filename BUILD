@@ -1,0 +1,1 @@
+target(name='test')
