@@ -1,6 +1,12 @@
 language: python
 python: "2.7.13"
 
+# Needed to enable Travis CI for gh-pages branches, see:
+#   https://github.com/travis-ci/travis-core/pull/137
+branches:
+  only:
+    - gh-pages
+
 script:
   - ./pants --version
   - ./pants list ::
