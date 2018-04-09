@@ -15,10 +15,10 @@ set -e
 
 PYTHON=${PYTHON:-$(which python2.7)}
 
-PANTS_HOME="${PANTS_HOME:-${HOME}/.cache/pants/setup}"
+PANTS_HOME="${PANTS_HOME:-${XDG_CACHE_HOME:-$HOME/.cache}/pants/setup}"
 PANTS_BOOTSTRAP="${PANTS_HOME}/bootstrap-$(uname -s)-$(uname -m)"
 
-VENV_VERSION=15.0.2
+VENV_VERSION=${VENV_VERSION:-15.2.0}
 
 # This requirement is installed before pantsbuild.pants to hack around
 # interpreters that have newer setuptools already installed, effectively
