@@ -12,12 +12,6 @@ script: "./pants --version && ./pants list ::"
 matrix:
   include:
     - os: osx
-      osx_image: xcode6.4
-      language: generic
-      env:
-        - OS=10.10
-    
-    - os: osx
       osx_image: xcode7.3
       language: generic
       env:
