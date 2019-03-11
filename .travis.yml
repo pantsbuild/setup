@@ -40,3 +40,8 @@ matrix:
       dist: trusty
       sudo: false
 
+    - name: "Ubuntu 16.04 - Xenial"
+      os: linux
+      dist: xenial
+      sudo: required
+
