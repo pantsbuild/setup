@@ -43,5 +43,5 @@ matrix:
     - name: "Ubuntu 16.04 - Xenial"
       os: linux
       dist: xenial
-      sudo: required
+      sudo: false
 
