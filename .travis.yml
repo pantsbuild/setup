@@ -61,3 +61,7 @@ matrix:
     - name: "Ubuntu 14.04 - Trusty"
       <<: *linux_setup
       dist: trusty
+
+    - name: "Ubuntu 16.04 - Xenial"
+      <<: *linux_setup
+      dist: xenial
