@@ -62,7 +62,7 @@ matrix:
       <<: *linux_setup
       dist: trusty
       before_install:
-        # NB: Trusty image comes with Python 3.4 installed via Pyenv, but we require 3.6+.
+        # NB: Trusty image comes with system Python 3.4, but we require 3.6+.
         # Use pyenv global to ensure we use 2.7 and 3.6, not 3.4.
         - pyenv global 2.7.14 3.6.3
 
