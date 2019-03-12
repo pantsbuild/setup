@@ -81,7 +81,10 @@ function bootstrap_pants {
     pants_version="unspecified"
   fi
 
-  if [[ ! -d "${PANTS_BOOTSTRAP}/${pants_version}" ]]
+  python_major_minor_version=$(${PYTHON} -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))')
+  target_folder_name="${pants_version}_py${python_major_minor_version}"
+
+  if [[ ! -d "${PANTS_BOOTSTRAP}/${target_folder_name}" ]]
   then
     (
       # NB: We setup the virtualenv with no setuptools to ensure our
@@ -93,11 +96,11 @@ function bootstrap_pants {
       "${staging_dir}/install/bin/pip" install -U pip
       "${staging_dir}/install/bin/pip" install "${SETUPTOOLS_REQUIREMENT}"
       "${staging_dir}/install/bin/pip" install "${pants_requirement}"
-      ln -s "${staging_dir}/install" "${staging_dir}/${pants_version}"
-      mv "${staging_dir}/${pants_version}" "${PANTS_BOOTSTRAP}/${pants_version}"
+      ln -s "${staging_dir}/install" "${staging_dir}/${target_folder_name}"
+      mv "${staging_dir}/${target_folder_name}" "${PANTS_BOOTSTRAP}/${target_folder_name}"
     ) 1>&2
   fi
-  echo "${PANTS_BOOTSTRAP}/${pants_version}"
+  echo "${PANTS_BOOTSTRAP}/${target_folder_name}"
 }
 
 # Ensure we operate from the context of the ./pants buildroot.
