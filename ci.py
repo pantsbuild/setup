@@ -26,9 +26,7 @@ def main() -> None:
 
 
 def create_parser() -> argparse.ArgumentParser:
-  parser = argparse.ArgumentParser(
-    description="Utility to run CI for the setup repo."
-  )
+  parser = argparse.ArgumentParser(description="Utility to run CI for the setup repo.")
   parser.add_argument(
       "--pants-version",
       action="store",
