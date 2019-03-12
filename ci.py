@@ -60,6 +60,8 @@ def setup_pants_version(pants_version: PantsVersion):
                      "does not include a pants_version! Please update pants.ini and run again.")
   if pants_version == PantsVersion.unspecified and pants_version_specified:
     with open(PANTS_INI, 'w') as f:
+      # NB: we must not only remove the original definition of `pants_version`, but also
+      # any lines that make use of it, such as contrib packages pinning their version to `pants_version`.
       f.writelines(line for line in original_pants_ini if "pants_version" not in line)
   yield
   with open(PANTS_INI, 'w') as f:
