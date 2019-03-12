@@ -10,7 +10,7 @@
       chmod +x pants
       touch pants.ini
     </pre>
-    The only requirement is that you have a python 2.7 interpreter somewhere on
+    The only requirement is that you have a python 2.7, 3.6, or 3.7 interpreter somewhere on
     your PATH.
     </p>
     <p>
@@ -19,6 +19,11 @@
     On subsequent runs it will find the already installed pants and run it.
     </p>
     <p>
+    To pin the Python version Pants uses to run its engine, add an entry like so to pants.ini, choosing between 2.7, 3.6 or 3.7:
+    <pre>
+      [GLOBAL]
+      pants_engine_python_version: 3.6
+    </pre>
     To pin the pants version, add an entry like so to pants.ini:
     <pre>
       [GLOBAL]
