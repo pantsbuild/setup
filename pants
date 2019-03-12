@@ -19,14 +19,8 @@ PANTS_BOOTSTRAP="${PANTS_HOME}/bootstrap-$(uname -s)-$(uname -m)"
 interpreter_version=$(
   grep -E "^[[:space:]]*pants_engine_python_version" pants.ini 2>/dev/null | \
     cut -f2 -d: | tr -d " "
-)
-if [[ -n "${interpreter_version}" ]]
-then
-  default_python="python${interpreter_version}"
-else
-  default_python="python2.7"
-fi
-PYTHON=${PYTHON:-$(which ${default_python})}
+) || interpreter_version=2.7
+PYTHON=${PYTHON:-$(which python${interpreter_version})}
 
 VENV_VERSION=${VENV_VERSION:-16.0.0}
 
