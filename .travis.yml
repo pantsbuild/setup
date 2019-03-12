@@ -6,7 +6,7 @@ branches:
 
 script:
   - ./ci.py --pants-version unspecified
-  - ./ci.py --pants-version pants.ini
+  - ./ci.py --pants-version config
 
 osx_setup: &osx_setup
   os: osx

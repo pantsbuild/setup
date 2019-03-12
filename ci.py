@@ -14,7 +14,7 @@ PANTS_INI = 'pants.ini'
 
 class PantsVersion(Enum):
   unspecified = "unspecified"
-  pants_ini = "pants.ini"
+  config = "config"
 
   def __str__(self):
       return self.value
@@ -55,7 +55,7 @@ def setup_pants_version(test_pants_version: PantsVersion):
   with open(PANTS_INI, 'r') as f:
     original_pants_ini = list(f.readlines())
   pants_version_already_specified = any(line.startswith("pants_version:") for line in original_pants_ini)
-  if test_pants_version == PantsVersion.pants_ini and not pants_version_already_specified:
+  if test_pants_version == PantsVersion.config and not pants_version_already_specified:
     raise ValueError("You requested to use the pants_version from pants.ini for this test, but pants.ini "
                      "does not include a pants_version! Please update pants.ini and run again.")
   if test_pants_version == PantsVersion.unspecified and pants_version_already_specified:
