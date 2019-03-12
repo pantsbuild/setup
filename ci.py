@@ -9,15 +9,15 @@ from contextlib import contextmanager
 from enum import Enum
 
 
+PANTS_INI = 'pants.ini'
+
+
 class PantsVersion(Enum):
   unspecified = "unspecified"
   pants_ini = "pants.ini"
 
   def __str__(self):
       return self.value
-
-
-PANTS_INI = 'pants.ini'
 
 
 def main() -> None:
