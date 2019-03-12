@@ -65,7 +65,7 @@ def setup_pants_version(pants_version: PantsVersion):
       f.writelines(line for line in original_pants_ini if "pants_version" not in line)
   yield
   with open(PANTS_INI, 'w') as f:
-    f.writelines(original_pants_ini)    
+    f.writelines(original_pants_ini)
 
 
 if __name__ == "__main__":
