@@ -8,10 +8,12 @@ branches:
     - gh-pages
 
 script:
-  - "./pants --version"
-  - "./pants list ::"
-  - "PANTS_ENABLE_PANTSD=True ./pants --version"
-  - "PANTS_ENABLE_PANTSD=True ./pants list ::"
+  - ci.py --pants-version unspecified --python-version unspecified
+  - ci.py --pants-version unspecified --python-version 2.7
+  - ci.py --pants-version unspecified --python-version 3.6
+  - ci.py --pants-version pants.ini --python-version unspecified
+  - ci.py --pants-version pants.ini --python-version 2.7
+  - ci.py --pants-version pants.ini --python-version 3.6
 
 matrix:
   include:
