@@ -4,25 +4,37 @@ branches:
   only:
     - gh-pages
 
-# NB: Python versions cannot be specified globally because they will be parsed by Travis
-# as a desired build matrix, i.e. it will start a job for Py27 and a job for Py37, rather than
-# ensuring each shard has both versions like we actually are requesting. So, we must
-# enumerate the versions in osx_setpu and linux_setup.
-language: python
-
 script:
   - ./ci.py --pants-version unspecified
   - ./ci.py --pants-version pants.ini
 
 osx_setup: &osx_setup
   os: osx
-  python:
-    - "2.7"
-    - "3.6"
+  language: generic
+  addons:
+    brew:
+      packages:
+        - openssl
+  env:
+    - >
+      PYENV_ROOT="${HOME}/.pyenv"
+      PATH="${PYENV_ROOT}/shims:${PATH}"
+    - >
+      # These flags are necessary to get OpenSSL working. See
+      # https://github.com/pyenv/pyenv/wiki/Common-build-problems#error-the-python-ssl-extension-was-not-compiled-missing-the-openssl-lib.
+      PATH="/usr/local/opt/openssl/bin:$PATH"
+      LDFLAGS="-L/usr/local/opt/openssl/lib"
+      CPPFLAGS="-I/usr/local/opt/openssl/include"
+  before_install:
+    - >
+      git clone https://github.com/pyenv/pyenv ${PYENV_ROOT}
+      && ${PYENV_ROOT}/bin/pyenv install 3.6.8
+      && ${PYENV_ROOT}/bin/pyenv global 3.6.8
 
 linux_setup: &linux_setup
   os: linux
   sudo: false
+  language: python
   python:
     - "2.7"
     - "3.6"
