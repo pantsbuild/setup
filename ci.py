@@ -22,7 +22,7 @@ class PantsVersion(Enum):
 
 def main() -> None:
   args = create_parser().parse_args()
-  run_tests(pants_version=args.pants_version)
+  run_tests(test_pants_version=args.pants_version)
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -38,11 +38,11 @@ def create_parser() -> argparse.ArgumentParser:
   return parser
 
 
-def run_tests(*, pants_version: PantsVersion) -> None:
+def run_tests(*, test_pants_version: PantsVersion) -> None:
   version_command = ["./pants", "--version"]
   list_command = ["./pants", "list", "::"]
   env_with_pantsd = {**os.environ, "PANTS_ENABLE_PANTSD": "True"}
-  with setup_pants_version(pants_version):
+  with setup_pants_version(test_pants_version):
     subprocess.run(version_command)
     subprocess.run(list_command)
     subprocess.run(version_command, env=env_with_pantsd)
@@ -50,15 +50,15 @@ def run_tests(*, pants_version: PantsVersion) -> None:
 
 
 @contextmanager
-def setup_pants_version(pants_version: PantsVersion):
+def setup_pants_version(test_pants_version: PantsVersion):
   """Modify pants.ini to allow the pants version to be unspecified or keep what was originally there."""
   with open(PANTS_INI, 'r') as f:
     original_pants_ini = list(f.readlines())
-  pants_version_specified = any(line.startswith("pants_version:") for line in original_pants_ini)
-  if pants_version == PantsVersion.pants_ini and not pants_version_specified:
+  pants_version_already_specified = any(line.startswith("pants_version:") for line in original_pants_ini)
+  if test_pants_version == PantsVersion.pants_ini and not pants_version_already_specified:
     raise ValueError("You requested to use the pants_version from pants.ini for this test, but pants.ini "
                      "does not include a pants_version! Please update pants.ini and run again.")
-  if pants_version == PantsVersion.unspecified and pants_version_specified:
+  if test_pants_version == PantsVersion.unspecified and pants_version_already_specified:
     with open(PANTS_INI, 'w') as f:
       # NB: we must not only remove the original definition of `pants_version`, but also
       # any lines that make use of it, such as contrib packages pinning their version to `pants_version`.
