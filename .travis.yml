@@ -8,12 +8,8 @@ branches:
     - gh-pages
 
 script:
-  - ci.py --pants-version unspecified --python-version unspecified
-  - ci.py --pants-version unspecified --python-version 2.7
-  - ci.py --pants-version unspecified --python-version 3.6
-  - ci.py --pants-version pants.ini --python-version unspecified
-  - ci.py --pants-version pants.ini --python-version 2.7
-  - ci.py --pants-version pants.ini --python-version 3.6
+  - ci.py --pants-version unspecified
+  - ci.py --pants-version pants.ini
 
 matrix:
   include:
