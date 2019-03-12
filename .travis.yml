@@ -4,10 +4,11 @@ branches:
   only:
     - gh-pages
 
+# NB: Python versions cannot be specified globally because they will be parsed by Travis
+# as a desired build matrix, i.e. it will start a job for Py27 and a job for Py37, rather than
+# ensuring each shard has both versions like we actually are requesting. So, we must
+# enumerate the versions in osx_setpu and linux_setup.
 language: python
-python:
-  - "2.7"
-  - "3.6"
 
 script:
   - ./ci.py --pants-version unspecified
@@ -15,10 +16,16 @@ script:
 
 osx_setup: &osx_setup
   os: osx
+  python:
+    - "2.7"
+    - "3.6"
 
 linux_setup: &linux_setup
   os: linux
   sudo: false
+  python:
+    - "2.7"
+    - "3.6"
 
 matrix:
   include:
