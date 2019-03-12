@@ -91,17 +91,35 @@ def setup_pants_version(pants_version: PantsVersion):
 
 
 @contextmanager
-def setup_python_version(python_version: PythonVersion):
-  """Set $PYTHON env var to a specific Python version or keep unspecified for default behavior."""
-  # TODO: modify this test to change pants.ini like we do in setup_pants_version!
-  # Right now we are only testing that the virtual environment resolves properly, and
-  # can't yet test that we parse pants.ini correctly until https://github.com/pantsbuild/pants/pull/7363
-  # gets merged and is released with Pants.
-  original_env = os.environ
-  if python_version != PythonVersion.unspecified:
-    os.environ = {**original_env, "PYTHON": f"python{python_version.value}"}
+def setup_python_version(test_python_version: PythonVersion):
+  """Modify pants.ini to allow the Python version to be unspecified or change to what was requested."""
+  expected_prefix = "pants_engine_python_version"
+  new_line = f"{expected_prefix}: {test_python_version.value}\n"
+  with open(PANTS_INI, 'r') as f:
+    original_pants_ini = list(f.readlines())
+  python_version_specified = any(line.startswith(expected_prefix) for line in original_pants_ini)
+  if test_python_version == PantsVersion.unspecified and python_version_specified:
+    with open(PANTS_INI, 'w') as f:
+      f.writelines(line for line in original_pants_ini if not line.startswith(expected_prefix))
+  if test_python_version != PantsVersion.unspecified and python_version_specified:
+    with open(PANTS_INI, 'w') as f:
+      f.writelines(
+          new_line if line.startswith(expected_prefix) else line
+          for line in original_pants_ini
+      )
+  if test_python_version != PantsVersion.unspecified and not python_version_specified:
+    with open(PANTS_INI, 'w') as f:
+      global_section_header_index = next((i for i, line in enumerate(original_pants_ini) if "[GLOBAL]" in line), None)
+      if global_section_header_index is None:
+        raise ValueError(f"You requested to use the python version {test_python_version}, but your "
+                         "pants.ini is missing a [GLOBAL] section header. Please add this and run again.")
+      new_lines = (original_pants_ini[:global_section_header_index]
+          + [new_line]
+          + original_pants_ini[global_section_header_index:])
+      f.writelines(new_line)
   yield
-  os.environ = original_env   
+  with open(PANTS_INI, 'w') as f:
+    f.writelines(original_pants_ini)
 
 
 if __name__ == "__main__":
