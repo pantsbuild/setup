@@ -9,6 +9,9 @@ from contextlib import contextmanager
 from enum import Enum
 
 
+PANTS_INI = 'pants.ini'
+
+
 class PantsVersion(Enum):
   unspecified = "unspecified"
   pants_ini = "pants.ini"
@@ -27,18 +30,13 @@ class PythonVersion(Enum):
     return self.value
 
 
-PANTS_INI = 'pants.ini'
-
-
 def main() -> None:
   args = create_parser().parse_args()
   run_tests(pants_version=args.pants_version, python_version=args.python_version)
 
 
 def create_parser() -> argparse.ArgumentParser:
-  parser = argparse.ArgumentParser(
-    description="Utility to run CI for the setup repo."
-  )
+  parser = argparse.ArgumentParser(description="Utility to run CI for the setup repo.")
   parser.add_argument(
       "--pants-version",
       action="store",
@@ -75,26 +73,26 @@ def run_tests(*, pants_version: PantsVersion, python_version: PythonVersion) -> 
 
 @contextmanager
 def setup_pants_version(pants_version: PantsVersion):
-  """Modify pants.ini to allow the pants version to be unspecified or what it originally was in pants.ini."""
+  """Modify pants.ini to allow the pants version to be unspecified or keep what was originally there."""
   with open(PANTS_INI, 'r') as f:
     original_pants_ini = list(f.readlines())
-  pants_version_line_index = next(
-    (i for i, line in enumerate(original_pants_ini) if line.startswith("pants_version:")),
-    None
-  )
-  if pants_version == PantsVersion.pants_ini and pants_version_line_index is None:
+  pants_version_specified = any(line.startswith("pants_version:") for line in original_pants_ini)
+  if pants_version == PantsVersion.pants_ini and not pants_version_specified:
     raise ValueError("You requested to use the pants_version from pants.ini for this test, but pants.ini "
                      "does not include a pants_version! Please update pants.ini and run again.")
-  if pants_version == PantsVersion.unspecified and pants_version_line_index is not None:
+  if pants_version == PantsVersion.unspecified and pants_version_specified:
     with open(PANTS_INI, 'w') as f:
-      f.writelines(line for i, line in enumerate(original_pants_ini) if i != pants_version_line_index)
+      # NB: we must not only remove the original definition of `pants_version`, but also
+      # any lines that make use of it, such as contrib packages pinning their version to `pants_version`.
+      f.writelines(line for line in original_pants_ini if "pants_version" not in line)
   yield
   with open(PANTS_INI, 'w') as f:
-    f.writelines(original_pants_ini)    
+    f.writelines(original_pants_ini)
 
 
 @contextmanager
 def setup_python_version(python_version: PythonVersion):
+  """Set $PYTHON env var to a specific Python version or keep unspecified for default behavior."""
   # TODO: modify this test to change pants.ini like we do in setup_pants_version!
   # Right now we are only testing that the virtual environment resolves properly, and
   # can't yet test that we parse pants.ini correctly until https://github.com/pantsbuild/pants/pull/7363
