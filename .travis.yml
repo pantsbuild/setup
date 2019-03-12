@@ -49,10 +49,11 @@ matrix:
     - name: "Ubuntu 14.04 - Trusty"
       <<: *linux_setup
       dist: trusty
-      env:
-        # NB: Trusty image comes with Python 3.4 installed, but we require 3.6+.
-        # Force 3.6 to the front of the PATH so it gets resolved by ci.py correctly.
-        - PATH="/opt/pyenv/shims/python3.6:${PATH}"
+      before_install:
+        # NB: Trusty image comes with Python 3.4 installed via Pyenv, but we require 3.6+.
+        # Use pyenv global to ensure we use 2.7 and 3.6, not 3.4.
+        - pyenv versions
+        - pyenv global system 3.6.8
 
     - name: "Ubuntu 16.04 - Xenial"
       <<: *linux_setup
