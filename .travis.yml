@@ -30,6 +30,10 @@ osx_setup: &osx_setup
       git clone https://github.com/pyenv/pyenv ${PYENV_ROOT}
       && ${PYENV_ROOT}/bin/pyenv install 3.6.8
       && ${PYENV_ROOT}/bin/pyenv global 3.6.8
+  before_script:
+    # Override file handler and thread limits
+    - ulimit -c unlimited
+    - ulimit -n 8192
 
 linux_setup: &linux_setup
   os: linux
