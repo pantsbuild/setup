@@ -43,10 +43,10 @@ def run_tests(*, test_pants_version: PantsVersion) -> None:
   list_command = ["./pants", "list", "::"]
   env_with_pantsd = {**os.environ, "PANTS_ENABLE_PANTSD": "True"}
   with setup_pants_version(test_pants_version):
-    subprocess.run(version_command).check_returncode()
-    subprocess.run(list_command).check_returncode()
-    subprocess.run(version_command, env=env_with_pantsd).check_returncode()
-    subprocess.run(list_command, env=env_with_pantsd).check_returncode()
+    subprocess.run(version_command, check=True)
+    subprocess.run(list_command, check=True)
+    subprocess.run(version_command, env=env_with_pantsd, check=True)
+    subprocess.run(list_command, env=env_with_pantsd, check=True)
 
 
 @contextmanager
