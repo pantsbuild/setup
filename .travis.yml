@@ -56,6 +56,8 @@ matrix:
       <<: *linux_setup
       dist: precise
       sudo: required
+      before_install:
+        - pyenv versions
 
     - name: "Ubuntu 14.04 - Trusty"
       <<: *linux_setup
@@ -68,3 +70,5 @@ matrix:
     - name: "Ubuntu 16.04 - Xenial"
       <<: *linux_setup
       dist: xenial
+      before_install:
+        - pyenv versions
