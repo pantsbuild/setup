@@ -39,7 +39,7 @@ linux_setup: &linux_setup
     - "2.7"
     - "3.6"
   # Modern Linux images come with Pyenv and some Python versions pre-installed.
-  # We must set `pyenv global` to use Python 3.6 instead of others like 3.5.
+  # We set `pyenv global` to use Python 3.6 instead of others like 3.5.
   before_install:
     - pyenv global ${PY27_VERSION} ${PY36_VERSION}
 

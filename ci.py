@@ -70,4 +70,3 @@ def setup_pants_version(test_pants_version: PantsVersion):
 
 if __name__ == "__main__":
   main()
-  print(f"f-strings rock! {1+1}")
