@@ -8,9 +8,9 @@ script:
   - ./ci.py --pants-version unspecified --python-version unspecified
   - ./ci.py --pants-version unspecified --python-version 2.7
   - ./ci.py --pants-version unspecified --python-version 3.6
-  - ./ci.py --pants-version pants.ini --python-version unspecified
-  - ./ci.py --pants-version pants.ini --python-version 2.7
-  - ./ci.py --pants-version pants.ini --python-version 3.6
+  - ./ci.py --pants-version config --python-version unspecified
+  - ./ci.py --pants-version config --python-version 2.7
+  - ./ci.py --pants-version config --python-version 3.6
 
 osx_setup: &osx_setup
   os: osx
@@ -23,7 +23,6 @@ osx_setup: &osx_setup
     - >
       PYENV_ROOT="${HOME}/.pyenv"
       PATH="${PYENV_ROOT}/shims:${PATH}"
-    - >
       # These flags are necessary to get OpenSSL working. See
       # https://github.com/pyenv/pyenv/wiki/Common-build-problems#error-the-python-ssl-extension-was-not-compiled-missing-the-openssl-lib.
       PATH="/usr/local/opt/openssl/bin:$PATH"

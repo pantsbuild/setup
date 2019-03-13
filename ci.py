@@ -14,7 +14,7 @@ PANTS_INI = 'pants.ini'
 
 class PantsVersion(Enum):
   unspecified = "unspecified"
-  pants_ini = "pants.ini"
+  config = "config"
 
   def __str__(self):
       return self.value
@@ -25,14 +25,14 @@ class PythonVersion(Enum):
   py27 = "2.7"
   py36 = "3.6"
   py37 = "3.7"
-  
+
   def __str__(self):
     return self.value
 
 
 def main() -> None:
   args = create_parser().parse_args()
-  run_tests(pants_version=args.pants_version, python_version=args.python_version)
+  run_tests(test_pants_version=args.pants_version, test_python_version=args.python_version)
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -56,15 +56,12 @@ def create_parser() -> argparse.ArgumentParser:
   return parser
 
 
-def run_tests(*, pants_version: PantsVersion, python_version: PythonVersion) -> None:
+def run_tests(*, test_pants_version: PantsVersion, test_python_version: PythonVersion) -> None:
   version_command = ["./pants", "--version"]
   list_command = ["./pants", "list", "::"]
-  with setup_pants_version(pants_version):
-    with setup_python_version(python_version):
-      # NB: this env must be defined within the context manager setup_python_version()
-      # to pick up its changes. Once we change the context manager to instead modify
-      # pants.ini, we should move this line back up to the root level of this function.
-      env_with_pantsd = {**os.environ, "PANTS_ENABLE_PANTSD": "True"}
+  env_with_pantsd = {**os.environ, "PANTS_ENABLE_PANTSD": "True"}
+  with setup_pants_version(test_pants_version):
+    with setup_python_version(test_python_version):
       subprocess.run(version_command)
       subprocess.run(list_command)
       subprocess.run(version_command, env=env_with_pantsd)
@@ -72,15 +69,15 @@ def run_tests(*, pants_version: PantsVersion, python_version: PythonVersion) -> 
 
 
 @contextmanager
-def setup_pants_version(pants_version: PantsVersion):
+def setup_pants_version(test_pants_version: PantsVersion):
   """Modify pants.ini to allow the pants version to be unspecified or keep what was originally there."""
   with open(PANTS_INI, 'r') as f:
     original_pants_ini = list(f.readlines())
-  pants_version_specified = any(line.startswith("pants_version:") for line in original_pants_ini)
-  if pants_version == PantsVersion.pants_ini and not pants_version_specified:
+  pants_version_already_specified = any(line.startswith("pants_version:") for line in original_pants_ini)
+  if test_pants_version == PantsVersion.config and not pants_version_already_specified:
     raise ValueError("You requested to use the pants_version from pants.ini for this test, but pants.ini "
                      "does not include a pants_version! Please update pants.ini and run again.")
-  if pants_version == PantsVersion.unspecified and pants_version_specified:
+  if test_pants_version == PantsVersion.unspecified and pants_version_already_specified:
     with open(PANTS_INI, 'w') as f:
       # NB: we must not only remove the original definition of `pants_version`, but also
       # any lines that make use of it, such as contrib packages pinning their version to `pants_version`.
