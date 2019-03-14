@@ -12,6 +12,7 @@ env:
 script:
   # Linux Precise and Trusty cannot install Python 3.7 due to an outdated OpenSSL,
   # so we set this variable to allow skipping Python 3.7 on these shards.
+  - python37_present="$(if which python3.7 >/dev/null; then echo 'true'; else echo 'false'; fi)"
   - ./ci.py --pants-version unspecified
   - ./ci.py --pants-version config
 
