@@ -20,19 +20,24 @@ osx_setup: &osx_setup
       packages:
         - openssl
   env:
-    - >
+    - &env_pyenv >
       PYENV_ROOT="${HOME}/.pyenv"
       PATH="${PYENV_ROOT}/shims:${PATH}"
+    - >
       # These flags are necessary to get OpenSSL working. See
       # https://github.com/pyenv/pyenv/wiki/Common-build-problems#error-the-python-ssl-extension-was-not-compiled-missing-the-openssl-lib.
       PATH="/usr/local/opt/openssl/bin:$PATH"
       LDFLAGS="-L/usr/local/opt/openssl/lib"
       CPPFLAGS="-I/usr/local/opt/openssl/include"
   before_install:
-    - >
+    - &pyenv_install >
       git clone https://github.com/pyenv/pyenv ${PYENV_ROOT}
       && ${PYENV_ROOT}/bin/pyenv install 3.6.8
       && ${PYENV_ROOT}/bin/pyenv global 3.6.8
+  before_script:
+    # Override file handler and thread limits
+    - ulimit -c unlimited
+    - ulimit -n 8192
 
 linux_setup: &linux_setup
   os: linux
@@ -41,6 +46,10 @@ linux_setup: &linux_setup
   python:
     - "2.7"
     - "3.6"
+  # Modern Linux images come with Pyenv and some Python versions pre-installed.
+  # We set `pyenv global` to use Python 3.6 instead of others like 3.5.
+  before_install:
+    - pyenv global ${PY27_VERSION} ${PY36_VERSION}
 
 matrix:
   include:
@@ -60,15 +69,23 @@ matrix:
       <<: *linux_setup
       dist: precise
       sudo: required
+      # NB: Precise image does not come with Pyenv, so we must manually install it
+      # as we do on OSX to get Python 3.6.
+      env:
+        - *env_pyenv
+      before_install:
+        - *pyenv_install
 
     - name: "Ubuntu 14.04 - Trusty"
       <<: *linux_setup
       dist: trusty
-      before_install:
-        # NB: Trusty image comes with system Python 3.4, but we require 3.6+.
-        # Use pyenv global to ensure we use 2.7 and 3.6, not 3.4.
-        - pyenv global 2.7.14 3.6.3
+      env:
+        - PY27_VERSION=2.7.14
+        - PY36_VERSION=3.6.3
 
     - name: "Ubuntu 16.04 - Xenial"
       <<: *linux_setup
       dist: xenial
+      env:
+        - PY27_VERSION=2.7.15
+        - PY36_VERSION=3.6.7
