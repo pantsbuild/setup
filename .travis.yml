@@ -25,7 +25,7 @@ osx_setup: &osx_setup
         - openssl
   env:
     - &env_pyenv >
-      PYENV_ROOT="${HOME}/.pyenv"
+      PYENV_ROOT="${HOME}/.pants_pyenv"
       PYENV_BIN="${PYENV_ROOT}/bin/pyenv"
       PATH="${PYENV_ROOT}/shims:${PATH}"
     - >
@@ -94,7 +94,7 @@ matrix:
       before_install:
         - *pyenv_install_py36
         - *pyenv_install_py37
-        - pyenv global "${PYENV_PY36_VERSION}" "${PYENV_PY37_VERSION}"
+        - ${PYENV_BIN} global "${PYENV_PY36_VERSION}" "${PYENV_PY37_VERSION}"
 
     - name: "Ubuntu 16.04 - Xenial"
       <<: *linux_setup
