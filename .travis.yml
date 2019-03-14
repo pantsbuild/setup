@@ -4,10 +4,15 @@ branches:
   only:
     - gh-pages
 
+env:
+  global:
+    - PYENV_PY36_VERSION=3.6.8
+    - PYENV_PY37_VERSION=3.7.2
+
 script:
   - python2.7 --version
   - python3.6 --version
-  - python3.7 --version
+  - which python3.7 >/dev/null && python3.7 --version
   # - ./ci.py --pants-version unspecified
   # - ./ci.py --pants-version config
 
@@ -31,11 +36,11 @@ osx_setup: &osx_setup
   before_install:
     - &pyenv_install_py36 >
       if [ ! -d "${PYENV_ROOT}" ]; then git clone https://github.com/pyenv/pyenv ${PYENV_ROOT}; fi
-      && ${PYENV_ROOT}/bin/pyenv install 3.6.8
+      && ${PYENV_ROOT}/bin/pyenv install "${PYENV_PY36_VERSION}"
     - &pyenv_install_py37 >
       if [ ! -d "${PYENV_ROOT}" ]; then git clone https://github.com/pyenv/pyenv ${PYENV_ROOT}; fi
-      && ${PYENV_ROOT}/bin/pyenv install 3.7.2
-    - &pyenv_global_py36_py37 ${PYENV_ROOT}/bin/pyenv global 3.6.8 3.7.2
+      && ${PYENV_ROOT}/bin/pyenv install"${PYENV_PY37_VERSION}"
+    - ${PYENV_ROOT}/bin/pyenv global "${PYENV_PY36_VERSION}" "${PYENV_PY37_VERSION}"
   before_script:
     # Override file handler and thread limits
     - ulimit -c unlimited
@@ -76,9 +81,8 @@ matrix:
       env:
         - *env_pyenv
       before_install:
-        # - *pyenv_install_py36
-        - *pyenv_install_py37
-        # - *pyenv_global_py36_py37
+        - *pyenv_install_py36
+        - pyenv global "${PYENV_PY36_VERSION}"
 
     - name: "Ubuntu 14.04 - Trusty"
       <<: *linux_setup
@@ -87,7 +91,7 @@ matrix:
         - *env_pyenv
       before_install:
         - *pyenv_install_py37
-        - pyenv global 2.7.14 3.6.3 3.7.2
+        - pyenv global 2.7.14 3.6.3 "${PYENV_PY37_VERSION}"
 
     - name: "Ubuntu 16.04 - Xenial"
       <<: *linux_setup
