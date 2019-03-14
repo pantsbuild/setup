@@ -31,8 +31,8 @@ SETUPTOOLS_REQUIREMENT="setuptools==5.4.1"
 VENV_PACKAGE=virtualenv-${VENV_VERSION}
 VENV_TARBALL=${VENV_PACKAGE}.tar.gz
 
-COLOR_BLUE="\x1b[34m"
 COLOR_RED="\x1b[31m"
+COLOR_GREEN="\x1b[32m"
 COLOR_RESET="\x1b[0m"
 
 function log() {
