@@ -92,12 +92,9 @@ matrix:
       env:
         - *env_pyenv
       before_install:
-        - git clone git://github.com/pyenv/pyenv-update.git $(pyenv root)/plugins/pyenv-update
-        - pyenv update
-        - pyenv versions
-        - pyenv install --list
-        - pyenv install "${PYENV_PY37_VERSION}"
-        - pyenv global 2.7.14 3.6.3 "${PYENV_PY37_VERSION}"
+        - *pyenv_install_py36
+        - *pyenv_install_py37
+        - pyenv global "${PYENV_PY36_VERSION}" "${PYENV_PY37_VERSION}"
 
     - name: "Ubuntu 16.04 - Xenial"
       <<: *linux_setup
