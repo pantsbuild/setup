@@ -29,7 +29,8 @@ osx_setup: &osx_setup
     - &pyenv_install >
       git clone https://github.com/pyenv/pyenv ${PYENV_ROOT}
       && ${PYENV_ROOT}/bin/pyenv install 3.6.8
-      && ${PYENV_ROOT}/bin/pyenv global 3.6.8
+      && ${PYENV_ROOT}/bin/pyenv install 3.7.2
+      && ${PYENV_ROOT}/bin/pyenv global 3.6.8 3.7.2
   before_script:
     # Override file handler and thread limits
     - ulimit -c unlimited
@@ -42,9 +43,12 @@ linux_setup: &linux_setup
   python:
     - "2.7"
     - "3.6"
+    - "3.7"
   # Modern Linux images come with Pyenv and some Python versions pre-installed.
-  # We set `pyenv global` to use Python 3.6 instead of others like 3.5.
+  # We set `pyenv global` to use Python 3.6 and 3.7 instead of others like 3.5.
   before_install:
+    - pyenv versions
+    - python3.7 --version
     - pyenv global ${PY27_VERSION} ${PY36_VERSION}
 
 matrix:
