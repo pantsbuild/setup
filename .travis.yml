@@ -12,7 +12,7 @@ env:
 script:
   - python2.7 --version
   - python3.6 --version
-  - which python3.7 >/dev/null && python3.7 --version
+  - if which python3.7 >/dev/null; then python3.7 --version; fi
   # - ./ci.py --pants-version unspecified
   # - ./ci.py --pants-version config
 
@@ -94,6 +94,9 @@ matrix:
       before_install:
         - git clone git://github.com/pyenv/pyenv-update.git $(pyenv root)/plugins/pyenv-update
         - pyenv update
+        - pyenv versions
+        - pyenv install --list
+        - pyenv install "${PYENV_PY37_VERSION}"
         - pyenv global 2.7.14 3.6.3 "${PYENV_PY37_VERSION}"
 
     - name: "Ubuntu 16.04 - Xenial"
