@@ -61,11 +61,11 @@ EOF
 }
 
 function determine_pants_runtime_python_version {
-  interpreter_version="$(get_pants_ini_config_value pants_runtime_python_version)"
+  interpreter_version="$(get_pants_ini_config_value 'pants_runtime_python_version')"
   if [[ -z "${interpreter_version}" ]]; then
     interpreter_version='2.7'
   fi
-  python_bin_name=${PYTHON:-python${interpreter_version}}
+  python_bin_name="${PYTHON:-python"${interpreter_version}"}"
   if which "${python_bin_name}" >/dev/null; then
     echo "$(which ${python_bin_name})"
   else
@@ -95,14 +95,14 @@ function bootstrap_venv {
 function bootstrap_pants {
   python="$1"
   pants_requirement="pantsbuild.pants"
-  pants_version="$(get_pants_ini_config_value pants_version)"
+  pants_version="$(get_pants_ini_config_value 'pants_version')"
   if [[ -n "${pants_version}" ]]; then
     pants_requirement="${pants_requirement}==${pants_version}"
   else
     pants_version="unspecified"
   fi
 
-  python_major_minor_version="$(get_python_major_minor_version ${python})"
+  python_major_minor_version="$(get_python_major_minor_version "${python}")"
   target_folder_name="${pants_version}_py${python_major_minor_version}"
 
   if [[ ! -d "${PANTS_BOOTSTRAP}/${target_folder_name}" ]]; then
