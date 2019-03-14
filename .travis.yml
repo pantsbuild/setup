@@ -40,7 +40,7 @@ osx_setup: &osx_setup
       && "${PYENV_BIN}" install "${PYENV_PY36_VERSION}"
     - &pyenv_install_py37 >
       if [ ! -d "${PYENV_ROOT}" ]; then git clone https://github.com/pyenv/pyenv ${PYENV_ROOT}; fi
-      && "${PYENV_BIN}" install" ${PYENV_PY37_VERSION}"
+      && "${PYENV_BIN}" install "${PYENV_PY37_VERSION}"
     - ${PYENV_BIN} global "${PYENV_PY36_VERSION}" "${PYENV_PY37_VERSION}"
   before_script:
     # Override file handler and thread limits
