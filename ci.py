@@ -108,18 +108,20 @@ def write_config_entry(*, entry_name: str, entry_value: Optional[str]) -> None:
   """Rewrite the entry in pants.ini to use the given value, entirely removing the entry if entry_value is None."""
   original_lines = read_pants_ini()
   entry_already_defined = any(line.startswith(entry_name) for line in original_lines)
-  if entry_value is None and not entry_already_defined:
-    new_lines = original_lines
-  elif entry_value is None and entry_already_defined:
-    new_lines = (line for line in original_lines if entry_name not in line)
-  elif entry_value is not None and entry_already_defined:
-    new_lines = (line if not line.startswith(entry_name) else f"{entry_name}: {entry_value}" for line in original_lines)
+  if entry_value is None:
+    if not entry_already_defined:
+      new_lines = original_lines
+    else:
+      new_lines = (line for line in original_lines if entry_name not in line)
   else:
-    global_section_header_index = next((i for i, line in enumerate(original_lines) if "[GLOBAL]" in line), None)
-    if global_section_header_index is None:
-      raise ValueError("Your pants.ini is missing a [GLOBAL] section header. Please add this and run again.")
-    new_lines = original_lines
-    new_lines.insert(global_section_header_index + 1, f"{entry_name}: {entry_value}")
+    if entry_already_defined:
+      new_lines = (line if not line.startswith(entry_name) else f"{entry_name}: {entry_value}" for line in original_lines)
+    else:
+      global_section_header_index = next((i for i, line in enumerate(original_lines) if "[GLOBAL]" in line), None)
+      if global_section_header_index is None:
+        raise ValueError("Your pants.ini is missing a [GLOBAL] section header. Please add this and run again.")
+      new_lines = original_lines
+      new_lines.insert(global_section_header_index + 1, f"{entry_name}: {entry_value}")
   write_pants_ini(new_lines)
 
 
