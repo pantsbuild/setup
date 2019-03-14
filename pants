@@ -48,7 +48,7 @@ function get_pants_ini_config_value {
   valid_delimiters="[:=]"
   optional_space="[[:space:]]*"
   prefix="^${config_key}${optional_space}${valid_delimiters}${optional_space}"
-  remove_prefix=" s#^.*${valid_delimiters}${optional_space}##p"
+  remove_prefix=" s#${prefix}##p"
   sed -ne "/${prefix}/${remove_prefix}" pants.ini
 }
 
