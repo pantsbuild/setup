@@ -108,7 +108,6 @@ def write_config_entry(*, entry_name: str, entry_value: Optional[str]) -> None:
   """Rewrite the entry in pants.ini to use the given value, entirely removing the entry if entry_value is None."""
   original_lines = read_pants_ini()
   entry_already_defined = any(line.startswith(entry_name) for line in original_lines)
-  # import pdb; pdb.set_trace()
   if entry_value is None and not entry_already_defined:
     new_lines = original_lines
   elif entry_value is None and entry_already_defined:
