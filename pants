@@ -13,7 +13,7 @@
 
 set -eou pipefail
 
-PYTHON=${PYTHON:-$(which python2.7)}
+PYTHON_BIN_NAME="${PYTHON:-python2.7}"
 
 PANTS_HOME="${PANTS_HOME:-${XDG_CACHE_HOME:-$HOME/.cache}/pants/setup}"
 PANTS_BOOTSTRAP="${PANTS_HOME}/bootstrap-$(uname -s)-$(uname -m)"
@@ -33,24 +33,57 @@ SETUPTOOLS_REQUIREMENT="setuptools==5.4.1"
 VENV_PACKAGE=virtualenv-${VENV_VERSION}
 VENV_TARBALL=${VENV_PACKAGE}.tar.gz
 
+COLOR_RED="\x1b[31m"
+COLOR_GREEN="\x1b[32m"
+COLOR_RESET="\x1b[0m"
+
+function log() {
+  echo -e "$@" 1>&2
+}
+
+function die() {
+  (($# > 0)) && log "${COLOR_RED}$*${COLOR_RESET}"
+  exit 1
+}
+
+function green() {
+  (($# > 0)) && log "${COLOR_GREEN}$*${COLOR_RESET}"
+}
+
+function tempdir {
+  mktemp -d "$1"/pants.XXXXXX
+}
+
+function get_pants_ini_config_value {
+  config_key="$1"
+  valid_delimiters="[:=]"
+  optional_space="[[:space:]]*"
+  prefix="^${config_key}${optional_space}${valid_delimiters}${optional_space}"
+  sed -ne "/${prefix}/ s#${prefix}##p" pants.ini
+}
+
 # The high-level flow:
-# 1.) Grab pants version from pants.ini or default to latest.
-# 2.) Check for a venv via a naming/path convention and execute if found.
-# 3.) Otherwise create venv and re-exec self.
+# 1.) Resolve the Python interpreter, defaulting to `python2.7`.
+# 2.) Grab pants version from pants.ini or default to latest.
+# 3.) Check for a venv via a naming/path convention and execute if found.
+# 4.) Otherwise create venv and re-exec self.
 #
 # After that pants itself will handle making sure any requested plugins
 # are installed and up to date.
 
-function tempdir {
-  mktemp -d "$1"/pants.XXXXXX
+function determine_pants_runtime_python_version {
+  if which "${PYTHON_BIN_NAME}" >/dev/null; then
+    which "${PYTHON_BIN_NAME}"
+  else
+    die "Could not find ${PYTHON_BIN_NAME}. Please ensure ${PYTHON_BIN_NAME} is on your PATH."
+  fi
 }
 
 # TODO(John Sirois): GC race loser tmp dirs leftover from bootstrap_XXX
 # functions.  Any tmp dir w/o a symlink pointing to it can go.
 
 function bootstrap_venv {
-  if [[ ! -d "${PANTS_BOOTSTRAP}/${VENV_PACKAGE}" ]]
-  then
+  if [[ ! -d "${PANTS_BOOTSTRAP}/${VENV_PACKAGE}" ]]; then
     (
       mkdir -p "${PANTS_BOOTSTRAP}"
       staging_dir=$(tempdir "${PANTS_BOOTSTRAP}")
@@ -65,40 +98,40 @@ function bootstrap_venv {
 }
 
 function bootstrap_pants {
+  python="$1"
   pants_requirement="pantsbuild.pants"
-  pants_version=$(
-    grep -E "^[[:space:]]*pants_version" pants.ini 2>/dev/null | \
-      cut -f2 -d: | tr -d " "
-  )
-  if [[ -n "${pants_version}" ]]
-  then
+  pants_version="$(get_pants_ini_config_value 'pants_version')"
+  if [[ -n "${pants_version}" ]]; then
     pants_requirement="${pants_requirement}==${pants_version}"
   else
     pants_version="unspecified"
   fi
 
-  if [[ ! -d "${PANTS_BOOTSTRAP}/${pants_version}" ]]
-  then
+  target_folder_name="${pants_version}"
+
+  if [[ ! -d "${PANTS_BOOTSTRAP}/${target_folder_name}" ]]; then
     (
       # NB: We setup the virtualenv with no setuptools to ensure our
       # ${SETUPTOOLS_REQUIREMENT} wins.
       venv_path="$(bootstrap_venv)"
       staging_dir=$(tempdir "${PANTS_BOOTSTRAP}")
-      "${PYTHON}" "${venv_path}/virtualenv.py" --no-setuptools --no-download \
+      "${python}" "${venv_path}/virtualenv.py" --no-setuptools --no-download \
         "${staging_dir}/install"
       "${staging_dir}/install/bin/pip" install -U pip
       "${staging_dir}/install/bin/pip" install "${SETUPTOOLS_REQUIREMENT}"
       "${staging_dir}/install/bin/pip" install "${pants_requirement}"
-      ln -s "${staging_dir}/install" "${staging_dir}/${pants_version}"
-      mv "${staging_dir}/${pants_version}" "${PANTS_BOOTSTRAP}/${pants_version}"
+      ln -s "${staging_dir}/install" "${staging_dir}/${target_folder_name}"
+      mv "${staging_dir}/${target_folder_name}" "${PANTS_BOOTSTRAP}/${target_folder_name}"
+      green "New virtual environment successfully created at ${PANTS_BOOTSTRAP}/${target_folder_name}."
     ) 1>&2
   fi
-  echo "${PANTS_BOOTSTRAP}/${pants_version}"
+  echo "${PANTS_BOOTSTRAP}/${target_folder_name}"
 }
 
 # Ensure we operate from the context of the ./pants buildroot.
 cd "$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd -P)"
-pants_dir=$(bootstrap_pants)
+python="$(determine_pants_runtime_python_version)"
+pants_dir="$(bootstrap_pants "${python}")"
 
 
 # We set the env var no_proxy to '*', to work around an issue with urllib using non
