@@ -26,6 +26,7 @@ osx_setup: &osx_setup
   env:
     - &env_pyenv >
       PYENV_ROOT="${HOME}/.pyenv"
+      PYENV_BIN="${PYENV_ROOT}/bin/pyenv"
       PATH="${PYENV_ROOT}/shims:${PATH}"
     - >
       # These flags are necessary to get OpenSSL working. See
@@ -36,11 +37,11 @@ osx_setup: &osx_setup
   before_install:
     - &pyenv_install_py36 >
       if [ ! -d "${PYENV_ROOT}" ]; then git clone https://github.com/pyenv/pyenv ${PYENV_ROOT}; fi
-      && ${PYENV_ROOT}/bin/pyenv install "${PYENV_PY36_VERSION}"
+      && "${PYENV_BIN}" install "${PYENV_PY36_VERSION}"
     - &pyenv_install_py37 >
       if [ ! -d "${PYENV_ROOT}" ]; then git clone https://github.com/pyenv/pyenv ${PYENV_ROOT}; fi
-      && ${PYENV_ROOT}/bin/pyenv install"${PYENV_PY37_VERSION}"
-    - ${PYENV_ROOT}/bin/pyenv global "${PYENV_PY36_VERSION}" "${PYENV_PY37_VERSION}"
+      && "${PYENV_BIN}" install"${PYENV_PY37_VERSION}"
+    - "${PYENV_BIN}" global "${PYENV_PY36_VERSION}" "${PYENV_PY37_VERSION}"
   before_script:
     # Override file handler and thread limits
     - ulimit -c unlimited
@@ -77,7 +78,7 @@ matrix:
         - *env_pyenv
       before_install:
         - *pyenv_install_py36
-        - pyenv global "${PYENV_PY36_VERSION}"
+        - "${PYENV_BIN}" global "${PYENV_PY36_VERSION}"
 
     - name: "Ubuntu 14.04 - Trusty"
       <<: *linux_setup
@@ -91,7 +92,8 @@ matrix:
       env:
         - *env_pyenv
       before_install:
-        - *pyenv_install_py37
+        - git clone git://github.com/pyenv/pyenv-update.git $(pyenv root)/plugins/pyenv-update
+        - pyenv update
         - pyenv global 2.7.14 3.6.3 "${PYENV_PY37_VERSION}"
 
     - name: "Ubuntu 16.04 - Xenial"
