@@ -67,9 +67,9 @@ function determine_pants_runtime_python_version {
   fi
   python_bin_name=${PYTHON:-python${interpreter_version}}
   if which "${python_bin_name}" >/dev/null; then
-    echo `which ${python_bin_name}`
+    echo "$(which ${python_bin_name})"
   else
-    echo "${python_bin_name} could not be found on your PATH! Pants will not work." >&2
+    echo "${python_bin_name} could not be found on your PATH! Pants will not work." 1>&2
     exit 1
   fi
 }
