@@ -13,8 +13,6 @@
 
 set -eou pipefail
 
-PYTHON=${PYTHON:-$(which python2.7)}
-
 PANTS_HOME="${PANTS_HOME:-${XDG_CACHE_HOME:-$HOME/.cache}/pants/setup}"
 PANTS_BOOTSTRAP="${PANTS_HOME}/bootstrap-$(uname -s)-$(uname -m)"
 
@@ -45,6 +43,16 @@ function tempdir {
   mktemp -d "$1"/pants.XXXXXX
 }
 
+function determine_pants_runtime_python_version {
+	  python_bin_name="${PYTHON:-python2.7}"
+	  if which "${python_bin_name}" >/dev/null; then
+	    echo "$(which ${python_bin_name})"
+	  else
+	    echo "${python_bin_name} could not be found on your PATH! Pants will not work." 1>&2
+	    exit 1
+	  fi
+	}
+
 # TODO(John Sirois): GC race loser tmp dirs leftover from bootstrap_XXX
 # functions.  Any tmp dir w/o a symlink pointing to it can go.
 
@@ -64,6 +72,7 @@ function bootstrap_venv {
 }
 
 function bootstrap_pants {
+  python="$1"
   pants_requirement="pantsbuild.pants"
   pants_version=$(
     grep -E "^[[:space:]]*pants_version" pants.ini 2>/dev/null | \
@@ -83,7 +92,7 @@ function bootstrap_pants {
       # ${SETUPTOOLS_REQUIREMENT} wins.
       venv_path="$(bootstrap_venv)"
       staging_dir=$(tempdir "${PANTS_BOOTSTRAP}")
-      "${PYTHON}" "${venv_path}/virtualenv.py" --no-setuptools --no-download \
+      "${python}" "${venv_path}/virtualenv.py" --no-setuptools --no-download \
         "${staging_dir}/install"
       "${staging_dir}/install/bin/pip" install -U pip
       "${staging_dir}/install/bin/pip" install "${SETUPTOOLS_REQUIREMENT}"
@@ -97,7 +106,8 @@ function bootstrap_pants {
 
 # Ensure we operate from the context of the ./pants buildroot.
 cd "$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd -P)"
-pants_dir="$(bootstrap_pants)"
+python="$(determine_pants_runtime_python_version)"
+pants_dir="$(bootstrap_pants ${python})"
 
 
 # We set the env var no_proxy to '*', to work around an issue with urllib using non
