@@ -48,18 +48,16 @@ function get_pants_ini_config_value {
   valid_delimiters="[:=]"
   optional_space="[[:space:]]*"
   prefix="^${config_key}${optional_space}${valid_delimiters}${optional_space}"
-  remove_prefix=" s#${prefix}##p"
-  sed -ne "/${prefix}/${remove_prefix}" pants.ini
+  sed -ne "/${prefix}/ s#${prefix}##p" pants.ini
 }
 
 function determine_pants_runtime_python_version {
   python_bin_name="${PYTHON:-python2.7}"
-  if which "${python_bin_name}" >/dev/null; then
-    echo "$(which ${python_bin_name})"
-  else
+  if ! which "${python_bin_name}" >/dev/null; then
     echo "${python_bin_name} could not be found on your PATH! Pants will not work." 1>&2
     exit 1
   fi
+  echo "$(which ${python_bin_name})"
 }
 
 # TODO(John Sirois): GC race loser tmp dirs leftover from bootstrap_XXX
@@ -113,7 +111,7 @@ function bootstrap_pants {
 # Ensure we operate from the context of the ./pants buildroot.
 cd "$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd -P)"
 python="$(determine_pants_runtime_python_version)"
-pants_dir="$(bootstrap_pants ${python})"
+pants_dir="$(bootstrap_pants "${python}")"
 
 
 # We set the env var no_proxy to '*', to work around an issue with urllib using non
