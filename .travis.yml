@@ -44,12 +44,6 @@ linux_setup: &linux_setup
     - "2.7"
     - "3.6"
     - "3.7"
-  # Modern Linux images come with Pyenv and some Python versions pre-installed.
-  # We set `pyenv global` to use Python 3.6 and 3.7 instead of others like 3.5.
-  before_install:
-    - pyenv versions
-    - python3.7 --version
-    - pyenv global ${PY27_VERSION} ${PY36_VERSION}
 
 matrix:
   include:
@@ -69,8 +63,6 @@ matrix:
       <<: *linux_setup
       dist: precise
       sudo: required
-      # NB: Precise image does not come with Pyenv, so we must manually install it
-      # as we do on OSX to get Python 3.6.
       env:
         - *env_pyenv
       before_install:
@@ -79,13 +71,12 @@ matrix:
     - name: "Ubuntu 14.04 - Trusty"
       <<: *linux_setup
       dist: trusty
-      env:
-        - PY27_VERSION=2.7.14
-        - PY36_VERSION=3.6.3
+      before_install:
+        - pyenv install 3.7.2
+        - pyenv global 2.7.14 3.6.3 3.7.2
 
     - name: "Ubuntu 16.04 - Xenial"
       <<: *linux_setup
       dist: xenial
-      env:
-        - PY27_VERSION=2.7.15
-        - PY36_VERSION=3.6.7
+      before_install:
+      - pyenv global 2.7.15 3.6.7 3.7.1
