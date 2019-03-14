@@ -5,8 +5,11 @@ branches:
     - gh-pages
 
 script:
-  - ./ci.py --pants-version unspecified
-  - ./ci.py --pants-version config
+  - python2.7 --version
+  - python3.6 --version
+  - python3.7 --version
+  # - ./ci.py --pants-version unspecified
+  # - ./ci.py --pants-version config
 
 osx_setup: &osx_setup
   os: osx
