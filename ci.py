@@ -90,21 +90,21 @@ def setup_pants_version(test_pants_version: PantsVersion):
 @contextmanager
 def setup_python_version(test_python_version: PythonVersion):
   """Modify pants.ini to allow the Python version to be unspecified or change to what was requested."""
-  expected_prefix = "pants_engine_python_version"
+  expected_prefix = "pants_runtime_python_version"
   new_line = f"{expected_prefix}: {test_python_version.value}\n"
   with open(PANTS_INI, 'r') as f:
     original_pants_ini = list(f.readlines())
-  python_version_specified = any(line.startswith(expected_prefix) for line in original_pants_ini)
-  if test_python_version == PantsVersion.unspecified and python_version_specified:
+  python_version_already_specified = any(line.startswith(expected_prefix) for line in original_pants_ini)
+  if test_python_version == PantsVersion.unspecified and python_version_already_specified:
     with open(PANTS_INI, 'w') as f:
       f.writelines(line for line in original_pants_ini if not line.startswith(expected_prefix))
-  if test_python_version != PantsVersion.unspecified and python_version_specified:
+  if test_python_version != PantsVersion.unspecified and python_version_already_specified:
     with open(PANTS_INI, 'w') as f:
       f.writelines(
           new_line if line.startswith(expected_prefix) else line
           for line in original_pants_ini
       )
-  if test_python_version != PantsVersion.unspecified and not python_version_specified:
+  if test_python_version != PantsVersion.unspecified and not python_version_already_specified:
     with open(PANTS_INI, 'w') as f:
       global_section_header_index = next((i for i, line in enumerate(original_pants_ini) if "[GLOBAL]" in line), None)
       if global_section_header_index is None:

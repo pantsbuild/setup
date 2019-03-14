@@ -17,7 +17,7 @@ PANTS_HOME="${PANTS_HOME:-${XDG_CACHE_HOME:-$HOME/.cache}/pants/setup}"
 PANTS_BOOTSTRAP="${PANTS_HOME}/bootstrap-$(uname -s)-$(uname -m)"
 
 interpreter_version=$(
-  grep -E "^[[:space:]]*pants_engine_python_version" pants.ini 2>/dev/null | \
+  grep -E "^[[:space:]]*pants_runtime_python_version" pants.ini 2>/dev/null | \
     cut -f2 -d: | tr -d " "
 ) || interpreter_version=2.7
 PYTHON=${PYTHON:-$(which python${interpreter_version})}
