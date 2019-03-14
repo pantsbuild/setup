@@ -57,7 +57,6 @@ function determine_pants_runtime_python_version {
     echo "Could not find ${python_bin_name}. Please ensure ${python_bin_name} is on your PATH." 1>&2
     exit 1
   fi
-  echo "$(which ${python_bin_name})"
 }
 
 # TODO(John Sirois): GC race loser tmp dirs leftover from bootstrap_XXX
