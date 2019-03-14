@@ -80,12 +80,17 @@ def setup_pants_version(test_pants_version: PantsVersion):
     updated_config.remove_option(GLOBAL_SECTION, config_entry)
     # NB: We also remove plugins as they refer to the pants_version.
     updated_config.remove_option(GLOBAL_SECTION, "plugins")
+    write_config(updated_config)
   elif test_pants_version == PantsVersion.config:
     if config_entry not in original_config[GLOBAL_SECTION]:
       raise ValueError("You requested to use the pants_version from pants.ini for this test, but pants.ini "
                        "does not include a pants_version!")
-  yield
-  write_config(original_config)
+  try:
+    yield
+  except subprocess.CalledProcessError:
+    raise
+  finally:
+    write_config(original_config)
 
 
 @contextmanager
@@ -111,7 +116,7 @@ def read_config() -> configparser.ConfigParser:
 
 def write_config(config: configparser.ConfigParser) -> None:
   with open(PANTS_INI, 'w') as f:
-    config.write(f, space_around_delimiters=False)
+    config.write(f)
 
 
 if __name__ == "__main__":

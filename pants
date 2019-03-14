@@ -13,6 +13,8 @@
 
 set -eou pipefail
 
+PYTHON_BIN_NAME="${PYTHON:-unspecified}"
+
 PANTS_HOME="${PANTS_HOME:-${XDG_CACHE_HOME:-$HOME/.cache}/pants/setup}"
 PANTS_BOOTSTRAP="${PANTS_HOME}/bootstrap-$(uname -s)-$(uname -m)"
 
@@ -31,14 +33,22 @@ SETUPTOOLS_REQUIREMENT="setuptools==5.4.1"
 VENV_PACKAGE=virtualenv-${VENV_VERSION}
 VENV_TARBALL=${VENV_PACKAGE}.tar.gz
 
-# The high-level flow:
-# 1.) Grab Python version from pants.ini or default to python2.7.
-# 2.) Grab pants version from pants.ini or default to latest.
-# 3.) Check for a venv via a naming/path convention and execute if found.
-# 4.) Otherwise create venv and re-exec self.
-#
-# After that pants itself will handle making sure any requested plugins
-# are installed and up to date.
+COLOR_RED="\x1b[31m"
+COLOR_GREEN="\x1b[32m"
+COLOR_RESET="\x1b[0m"
+
+function log() {
+  echo -e "$@" 1>&2
+}
+
+function die() {
+  (($# > 0)) && log "${COLOR_RED}$*${COLOR_RESET}"
+  exit 1
+}
+
+function green() {
+  (($# > 0)) && log "${COLOR_GREEN}$*${COLOR_RESET}"
+}
 
 function tempdir {
   mktemp -d "$1"/pants.XXXXXX
@@ -46,9 +56,10 @@ function tempdir {
 
 function get_pants_ini_config_value {
   config_key="$1"
-  # When a line with `config_key:` is found, replace all the text from the start up to
-  # and including the `:` with an empty string, then print.
-  sed -ne "/\s*${config_key}:/ s#^.*:##p" pants.ini | head -n1
+  valid_delimiters="[:=]"
+  optional_space="[[:space:]]*"
+  prefix="^${config_key}${optional_space}${valid_delimiters}${optional_space}"
+  sed -ne "/${prefix}/ s#${prefix}##p" pants.ini
 }
 
 function get_python_major_minor_version {
@@ -60,18 +71,35 @@ print(major_minor_version)
 EOF
 }
 
+function check_interpreter_on_path {
+  python="$1"
+  if ! which "${python}" >/dev/null; then
+    die "Could not find ${python_bin_name}. Please ensure ${python_bin_name} is on your PATH."
+  fi
+}
+
+# The high-level flow:
+# 1.) Resolve the Python interpreter, first reading from the env var $PYTHON_BIN_NAME,
+#     then reading from pants.ini, then defaulting to `python2.7`.
+# 2.) Grab pants version from pants.ini or default to latest.
+# 3.) Check for a venv via a naming/path convention and execute if found.
+# 4.) Otherwise create venv and re-exec self.
+#
+# After that pants itself will handle making sure any requested plugins
+# are installed and up to date.
+
 function determine_pants_runtime_python_version {
-  interpreter_version="$(get_pants_ini_config_value 'pants_runtime_python_version')"
-  if [[ -z "${interpreter_version}" ]]; then
-    interpreter_version='2.7'
-  fi
-  python_bin_name="${PYTHON:-python"${interpreter_version}"}"
-  if which "${python_bin_name}" >/dev/null; then
-    echo "$(which ${python_bin_name})"
+  if [[ "${PYTHON_BIN_NAME}" != 'unspecified' ]]; then
+    python_bin_name="${PYTHON_BIN_NAME}"
   else
-    echo "${python_bin_name} could not be found on your PATH! Pants will not work." 1>&2
-    exit 1
+    interpreter_version="$(get_pants_ini_config_value 'pants_runtime_python_version')"
+    if [[ -z "${interpreter_version}" ]]; then
+      interpreter_version='2.7'
+    fi
+    python_bin_name="python${interpreter_version}"
   fi
+  check_interpreter_on_path "${python_bin_name}"
+  which "${python_bin_name}"
 }
 
 # TODO(John Sirois): GC race loser tmp dirs leftover from bootstrap_XXX
@@ -118,6 +146,7 @@ function bootstrap_pants {
       "${staging_dir}/install/bin/pip" install "${pants_requirement}"
       ln -s "${staging_dir}/install" "${staging_dir}/${target_folder_name}"
       mv "${staging_dir}/${target_folder_name}" "${PANTS_BOOTSTRAP}/${target_folder_name}"
+      green "New virtual environment successfully created at ${PANTS_BOOTSTRAP}/${target_folder_name}."
     ) 1>&2
   fi
   echo "${PANTS_BOOTSTRAP}/${target_folder_name}"
@@ -126,7 +155,7 @@ function bootstrap_pants {
 # Ensure we operate from the context of the ./pants buildroot.
 cd "$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd -P)"
 python="$(determine_pants_runtime_python_version)"
-pants_dir="$(bootstrap_pants ${python})"
+pants_dir="$(bootstrap_pants "${python}")"
 
 
 # We set the env var no_proxy to '*', to work around an issue with urllib using non

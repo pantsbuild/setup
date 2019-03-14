@@ -4,15 +4,27 @@ branches:
   only:
     - gh-pages
 
+env:
+  global:
+    - PYENV_PY36_VERSION=3.6.8
+    - PYENV_PY37_VERSION=3.7.2
+
 script:
+  # Linux Precise and Trusty cannot install Python 3.7 due to an outdated OpenSSL,
+  # so we set this variable to allow skipping Python 3.7 on these shards.
+  - python37_present="$(if which python3.7 >/dev/null; then echo 'true'; else echo 'false'; fi)"
   - ./ci.py --pants-version unspecified --python-version unspecified
-  - ./ci.py --pants-version unspecified --python-version 2.7
-  # TODO: this will not work until 1.15.0 is cut, as ./pants uses 1.14.0 currently
+  # TODO: these entries will not work until 1.15.0 is cut, as ./pants uses 1.14.0 currently
   # when pants_version is unspecified. Add this test back once 1.15.0 is released.
+  # - ./ci.py --pants-version unspecified --python-version 2.7
   # - ./ci.py --pants-version unspecified --python-version 3.6
+  # - if [[ "${python37_present}" = 'true' ]]; then \
+  #    ./ci.py --pants-version unspecified --python-version 3.7; fi
   - ./ci.py --pants-version config --python-version unspecified
   - ./ci.py --pants-version config --python-version 2.7
   - ./ci.py --pants-version config --python-version 3.6
+  - if [[ "${python37_present}" = 'true' ]]; then \
+      ./ci.py --pants-version config --python-version 3.7; fi
 
 osx_setup: &osx_setup
   os: osx
@@ -23,7 +35,8 @@ osx_setup: &osx_setup
         - openssl
   env:
     - &env_pyenv >
-      PYENV_ROOT="${HOME}/.pyenv"
+      PYENV_ROOT="${HOME}/.pants_pyenv"
+      PYENV_BIN="${PYENV_ROOT}/bin/pyenv"
       PATH="${PYENV_ROOT}/shims:${PATH}"
     - >
       # These flags are necessary to get OpenSSL working. See
@@ -32,10 +45,13 @@ osx_setup: &osx_setup
       LDFLAGS="-L/usr/local/opt/openssl/lib"
       CPPFLAGS="-I/usr/local/opt/openssl/include"
   before_install:
-    - &pyenv_install >
-      git clone https://github.com/pyenv/pyenv ${PYENV_ROOT}
-      && ${PYENV_ROOT}/bin/pyenv install 3.6.8
-      && ${PYENV_ROOT}/bin/pyenv global 3.6.8
+    - &pyenv_install_py36 >
+      if [ ! -d "${PYENV_ROOT}" ]; then git clone https://github.com/pyenv/pyenv ${PYENV_ROOT}; fi
+      && "${PYENV_BIN}" install "${PYENV_PY36_VERSION}"
+    - &pyenv_install_py37 >
+      if [ ! -d "${PYENV_ROOT}" ]; then git clone https://github.com/pyenv/pyenv ${PYENV_ROOT}; fi
+      && "${PYENV_BIN}" install "${PYENV_PY37_VERSION}"
+    - ${PYENV_BIN} global "${PYENV_PY36_VERSION}" "${PYENV_PY37_VERSION}"
   before_script:
     # Override file handler and thread limits
     - ulimit -c unlimited
@@ -48,10 +64,7 @@ linux_setup: &linux_setup
   python:
     - "2.7"
     - "3.6"
-  # Modern Linux images come with Pyenv and some Python versions pre-installed.
-  # We set `pyenv global` to use Python 3.6 instead of others like 3.5.
-  before_install:
-    - pyenv global ${PY27_VERSION} ${PY36_VERSION}
+    - "3.7"
 
 matrix:
   include:
@@ -71,23 +84,20 @@ matrix:
       <<: *linux_setup
       dist: precise
       sudo: required
-      # NB: Precise image does not come with Pyenv, so we must manually install it
-      # as we do on OSX to get Python 3.6.
       env:
         - *env_pyenv
       before_install:
-        - *pyenv_install
+        - *pyenv_install_py36
+        - ${PYENV_BIN} global "${PYENV_PY36_VERSION}"
 
     - name: "Ubuntu 14.04 - Trusty"
       <<: *linux_setup
       dist: trusty
-      env:
-        - PY27_VERSION=2.7.14
-        - PY36_VERSION=3.6.3
+      before_install:
+        - pyenv global 2.7.14 3.6.3
 
     - name: "Ubuntu 16.04 - Xenial"
       <<: *linux_setup
       dist: xenial
-      env:
-        - PY27_VERSION=2.7.15
-        - PY36_VERSION=3.6.7
+      before_install:
+      - pyenv global 2.7.15 3.6.7 3.7.1
