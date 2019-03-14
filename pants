@@ -53,8 +53,7 @@ function get_pants_ini_config_value {
 
 function determine_pants_runtime_python_version {
   python_bin_name="${PYTHON:-python2.7}"
-  if ! which "${python_bin_name}" >/dev/null; then
-    echo "${python_bin_name} could not be found on your PATH! Pants will not work." 1>&2
+  if ! which "${python_bin_name}"; then
     exit 1
   fi
   echo "$(which ${python_bin_name})"
@@ -81,7 +80,7 @@ function bootstrap_venv {
 function bootstrap_pants {
   python="$1"
   pants_requirement="pantsbuild.pants"
-  pants_version=$(get_pants_ini_config_value 'pants_version')
+  pants_version="$(get_pants_ini_config_value 'pants_version')"
   if [[ -n "${pants_version}" ]]; then
     pants_requirement="${pants_requirement}==${pants_version}"
   else
