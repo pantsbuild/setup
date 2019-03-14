@@ -3,6 +3,7 @@
 # Licensed under the Apache License, Version 2.0 (see LICENSE).
 
 import argparse
+import configparser
 import os
 import subprocess
 from contextlib import contextmanager
@@ -10,6 +11,7 @@ from enum import Enum
 
 
 PANTS_INI = 'pants.ini'
+GLOBAL_SECTION = "GLOBAL"
 
 
 class PantsVersion(Enum):
@@ -52,20 +54,30 @@ def run_tests(*, test_pants_version: PantsVersion) -> None:
 @contextmanager
 def setup_pants_version(test_pants_version: PantsVersion):
   """Modify pants.ini to allow the pants version to be unspecified or keep what was originally there."""
-  with open(PANTS_INI, 'r') as f:
-    original_pants_ini = list(f.readlines())
-  pants_version_already_specified = any(line.startswith("pants_version:") for line in original_pants_ini)
-  if test_pants_version == PantsVersion.config and not pants_version_already_specified:
-    raise ValueError("You requested to use the pants_version from pants.ini for this test, but pants.ini "
-                     "does not include a pants_version! Please update pants.ini and run again.")
-  if test_pants_version == PantsVersion.unspecified and pants_version_already_specified:
-    with open(PANTS_INI, 'w') as f:
-      # NB: we must not only remove the original definition of `pants_version`, but also
-      # any lines that make use of it, such as contrib packages pinning their version to `pants_version`.
-      f.writelines(line for line in original_pants_ini if "pants_version" not in line)
+  original_config = read_config()
+  updated_config = read_config()
+  config_entry = "pants_version"
+  if test_pants_version == PantsVersion.unspecified:
+    updated_config.remove_option(GLOBAL_SECTION, config_entry)
+    # NB: We also remove plugins as they refer to the pants_version.
+    updated_config.remove_option(GLOBAL_SECTION, "plugins")
+  elif test_pants_version == PantsVersion.config:
+    if config_entry not in original_config[GLOBAL_SECTION]:
+      raise ValueError("You requested to use the pants_version from pants.ini for this test, but pants.ini "
+                       "does not include a pants_version!")
   yield
+  write_config(original_config)
+
+
+def read_config() -> configparser.ConfigParser:
+  cp = configparser.ConfigParser(delimiters={":"})
+  cp.read(PANTS_INI)
+  return cp
+
+
+def write_config(config: configparser.ConfigParser) -> None:
   with open(PANTS_INI, 'w') as f:
-    f.writelines(original_pants_ini)
+    config.write(f, space_around_delimiters=False)
 
 
 if __name__ == "__main__":
