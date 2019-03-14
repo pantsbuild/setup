@@ -111,7 +111,7 @@ def read_config() -> configparser.ConfigParser:
 
 def write_config(config: configparser.ConfigParser) -> None:
   with open(PANTS_INI, 'w') as f:
-    config.write(f)
+    config.write(f, space_around_delimiters=False)
 
 
 if __name__ == "__main__":
