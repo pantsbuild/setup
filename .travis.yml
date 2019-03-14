@@ -40,8 +40,8 @@ osx_setup: &osx_setup
       && "${PYENV_BIN}" install "${PYENV_PY36_VERSION}"
     - &pyenv_install_py37 >
       if [ ! -d "${PYENV_ROOT}" ]; then git clone https://github.com/pyenv/pyenv ${PYENV_ROOT}; fi
-      && "${PYENV_BIN}" install"${PYENV_PY37_VERSION}"
-    - "${PYENV_BIN}" global "${PYENV_PY36_VERSION}" "${PYENV_PY37_VERSION}"
+      && "${PYENV_BIN}" install" ${PYENV_PY37_VERSION}"
+    - ${PYENV_BIN} global "${PYENV_PY36_VERSION}" "${PYENV_PY37_VERSION}"
   before_script:
     # Override file handler and thread limits
     - ulimit -c unlimited
@@ -78,7 +78,7 @@ matrix:
         - *env_pyenv
       before_install:
         - *pyenv_install_py36
-        - "${PYENV_BIN}" global "${PYENV_PY36_VERSION}"
+        - ${PYENV_BIN} global "${PYENV_PY36_VERSION}"
 
     - name: "Ubuntu 14.04 - Trusty"
       <<: *linux_setup
