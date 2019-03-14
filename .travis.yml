@@ -66,6 +66,11 @@ matrix:
       <<: *linux_setup
       dist: precise
       sudo: required
+      addons:
+        apt:
+          packages:
+            - openssl
+            - libssl-dev
       env:
         - *env_pyenv
       before_install:
