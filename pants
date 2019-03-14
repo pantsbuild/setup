@@ -13,6 +13,8 @@
 
 set -eou pipefail
 
+PYTHON_BIN_NAME="${PYTHON:-python2.7}"
+
 PANTS_HOME="${PANTS_HOME:-${XDG_CACHE_HOME:-$HOME/.cache}/pants/setup}"
 PANTS_BOOTSTRAP="${PANTS_HOME}/bootstrap-$(uname -s)-$(uname -m)"
 
@@ -70,11 +72,10 @@ function get_pants_ini_config_value {
 # are installed and up to date.
 
 function determine_pants_runtime_python_version {
-  python_bin_name="${PYTHON:-python2.7}"
-  if which "${python_bin_name}" >/dev/null; then
-    which "${python_bin_name}"
+  if which "${PYTHON_BIN_NAME}" >/dev/null; then
+    which "${PYTHON_BIN_NAME}"
   else
-    die "Could not find ${python_bin_name}. Please ensure ${python_bin_name} is on your PATH."
+    die "Could not find ${PYTHON_BIN_NAME}. Please ensure ${PYTHON_BIN_NAME} is on your PATH."
   fi
 }
 
@@ -121,6 +122,7 @@ function bootstrap_pants {
       "${staging_dir}/install/bin/pip" install "${pants_requirement}"
       ln -s "${staging_dir}/install" "${staging_dir}/${target_folder_name}"
       mv "${staging_dir}/${target_folder_name}" "${PANTS_BOOTSTRAP}/${target_folder_name}"
+      green "New virtual environment successfully created at ${PANTS_BOOTSTRAP}/${target_folder_name}."
     ) 1>&2
   fi
   echo "${PANTS_BOOTSTRAP}/${target_folder_name}"
