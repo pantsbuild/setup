@@ -76,9 +76,9 @@ matrix:
       env:
         - *env_pyenv
       before_install:
-        - *pyenv_install_py36
+        # - *pyenv_install_py36
         - *pyenv_install_py37
-        - *pyenv_global_py36_py37
+        # - *pyenv_global_py36_py37
 
     - name: "Ubuntu 14.04 - Trusty"
       <<: *linux_setup
