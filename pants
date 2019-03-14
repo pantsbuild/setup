@@ -79,7 +79,7 @@ function check_interpreter_on_path {
 }
 
 # The high-level flow:
-# 1.) Resolve the Python interpreter, first reading from the env var $PYTHON_BIN_NAME,
+# 1.) Resolve the Python interpreter, first reading from the env var $PYTHON,
 #     then reading from pants.ini, then defaulting to `python2.7`.
 # 2.) Grab pants version from pants.ini or default to latest.
 # 3.) Check for a venv via a naming/path convention and execute if found.
