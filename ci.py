@@ -74,7 +74,7 @@ def setup_pants_version(test_pants_version: PantsVersion):
   """Modify pants.ini to allow the pants version to be unspecified or keep what was originally there."""
   original_lines = read_pants_ini()
   if test_pants_version == PantsVersion.unspecified:
-    write_config_entry("pants_version", None)
+    write_config_entry(entry_name="pants_version", entry_value=None)
   elif test_pants_version == PantsVersion.config:
     pants_version_defined = any(line.startswith("pants_version") for line in original_lines)
     if not pants_version_defined:
