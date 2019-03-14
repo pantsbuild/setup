@@ -74,7 +74,7 @@ EOF
 function check_interpreter_on_path {
   python="$1"
   if ! which "${python}" >/dev/null; then
-    die "Could not find ${python_bin_name}. Please ensure ${python_bin_name} is on your PATH."
+    die "Could not find ${python}. Please ensure ${python} is on your PATH."
   fi
 }
 
