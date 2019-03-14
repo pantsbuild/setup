@@ -43,6 +43,15 @@ function tempdir {
   mktemp -d "$1"/pants.XXXXXX
 }
 
+function get_pants_ini_config_value {
+  config_key="$1"
+  valid_delimiters="[:=]"
+  optional_space="[[:space:]]*"
+  prefix="^${config_key}${optional_space}${valid_delimiters}${optional_space}"
+  remove_prefix=" s#^.*${valid_delimiters}${optional_space}##p"
+  sed -ne "/${prefix}/${remove_prefix}" pants.ini
+}
+
 function determine_pants_runtime_python_version {
 	  python_bin_name="${PYTHON:-python2.7}"
 	  if which "${python_bin_name}" >/dev/null; then
@@ -74,10 +83,7 @@ function bootstrap_venv {
 function bootstrap_pants {
   python="$1"
   pants_requirement="pantsbuild.pants"
-  pants_version=$(
-    grep -E "^[[:space:]]*pants_version" pants.ini 2>/dev/null | \
-      cut -f2 -d: | tr -d " "
-  )
+  pants_version=$(get_pants_ini_config_value 'pants_version')
   if [[ -n "${pants_version}" ]]; then
     pants_requirement="${pants_requirement}==${pants_version}"
   else
