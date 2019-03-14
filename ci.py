@@ -119,7 +119,7 @@ def write_config_entry(*, entry_name: str, entry_value: Optional[str]) -> None:
     else:
       global_section_header_index = next((i for i, line in enumerate(original_lines) if "[GLOBAL]" in line), None)
       if global_section_header_index is None:
-        raise ValueError("Your pants.ini is missing a [GLOBAL] section header. Please add this and run again.")
+        raise ValueError("pants.ini is missing a [GLOBAL] section header. Please add this and run again.")
       new_lines = original_lines
       new_lines.insert(global_section_header_index + 1, f"{entry_name}: {entry_value}")
   write_pants_ini(new_lines)
