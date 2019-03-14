@@ -54,6 +54,7 @@ function get_pants_ini_config_value {
 function determine_pants_runtime_python_version {
   python_bin_name="${PYTHON:-python2.7}"
   if ! which "${python_bin_name}"; then
+    echo "Could not find ${python_bin_name}. Please ensure ${python_bin_name} is on your PATH." 1>&2
     exit 1
   fi
   echo "$(which ${python_bin_name})"
