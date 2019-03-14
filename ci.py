@@ -81,7 +81,7 @@ def setup_pants_version(test_pants_version: PantsVersion):
     # NB: We also remove plugins as they refer to the pants_version.
     updated_config.remove_option(GLOBAL_SECTION, "plugins")
   elif test_pants_version == PantsVersion.config:
-    if not config_entry in original_config[GLOBAL_SECTION]:
+    if config_entry not in original_config[GLOBAL_SECTION]:
       raise ValueError("You requested to use the pants_version from pants.ini for this test, but pants.ini "
                        "does not include a pants_version!")
   yield

@@ -46,9 +46,9 @@ function tempdir {
 
 function get_pants_ini_config_value {
   config_key="$1"
-  # When a line with `config_key: ` is found, replace all the text from the start up to
-  # and including the `: ` with an empty string, then print.
-  sed -ne "/\s*${config_key}: / s#^.*: ##p" pants.ini
+  # When a line with `config_key:` is found, replace all the text from the start up to
+  # and including the `:` with an empty string, then print.
+  sed -ne "/\s*${config_key}:/ s#^.*:##p" pants.ini | head -n1
 }
 
 function get_python_major_minor_version {
