@@ -7,7 +7,9 @@ branches:
 script:
   - ./ci.py --pants-version unspecified --python-version unspecified
   - ./ci.py --pants-version unspecified --python-version 2.7
-  - ./ci.py --pants-version unspecified --python-version 3.6
+  # TODO: this will not work until 1.15.0 is cut, as ./pants uses 1.14.0 currently
+  # when pants_version is unspecified. Add this test back once 1.15.0 is released.
+  # - ./ci.py --pants-version unspecified --python-version 3.6
   - ./ci.py --pants-version config --python-version unspecified
   - ./ci.py --pants-version config --python-version 2.7
   - ./ci.py --pants-version config --python-version 3.6
