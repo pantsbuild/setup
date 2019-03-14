@@ -20,7 +20,13 @@ interpreter_version=$(
   grep -E "^[[:space:]]*pants_runtime_python_version" pants.ini 2>/dev/null | \
     cut -f2 -d: | tr -d " "
 ) || interpreter_version=2.7
-PYTHON=${PYTHON:-$(which python${interpreter_version})}
+python_bin_name=${PYTHON:-python${interpreter_version}}
+if which "${python_bin_name}" >/dev/null; then
+  PYTHON=`which ${python_bin_name}`
+else
+  echo "${python_bin_name} could not be found on your PATH! Pants will not work." >&2
+  exit 1
+fi
 
 VENV_VERSION=${VENV_VERSION:-16.0.0}
 
