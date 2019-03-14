@@ -7,6 +7,7 @@ import os
 import subprocess
 from contextlib import contextmanager
 from enum import Enum
+from typing import List, Iterable, Optional
 
 
 PANTS_INI = 'pants.ini'
@@ -71,52 +72,56 @@ def run_tests(*, test_pants_version: PantsVersion, test_python_version: PythonVe
 @contextmanager
 def setup_pants_version(test_pants_version: PantsVersion):
   """Modify pants.ini to allow the pants version to be unspecified or keep what was originally there."""
-  with open(PANTS_INI, 'r') as f:
-    original_pants_ini = list(f.readlines())
-  pants_version_already_specified = any(line.startswith("pants_version:") for line in original_pants_ini)
-  if test_pants_version == PantsVersion.config and not pants_version_already_specified:
-    raise ValueError("You requested to use the pants_version from pants.ini for this test, but pants.ini "
-                     "does not include a pants_version! Please update pants.ini and run again.")
-  if test_pants_version == PantsVersion.unspecified and pants_version_already_specified:
-    with open(PANTS_INI, 'w') as f:
-      # NB: we must not only remove the original definition of `pants_version`, but also
-      # any lines that make use of it, such as contrib packages pinning their version to `pants_version`.
-      f.writelines(line for line in original_pants_ini if "pants_version" not in line)
+  original_lines = read_pants_ini()
+  if test_pants_version == PantsVersion.unspecified:
+    write_config_entry("pants_version", None)
+  elif test_pants_version == PantsVersion.config:
+    pants_version_defined = any(line.startswith("pants_version") for line in original_lines)
+    if not pants_version_defined:
+      raise ValueError("You requested to use the pants_version from pants.ini for this test, but pants.ini "
+                       "does not include a pants_version! Please update pants.ini and run again.")
   yield
-  with open(PANTS_INI, 'w') as f:
-    f.writelines(original_pants_ini)
+  write_pants_ini(original_lines)
 
 
 @contextmanager
 def setup_python_version(test_python_version: PythonVersion):
   """Modify pants.ini to allow the Python version to be unspecified or change to what was requested."""
-  expected_prefix = "pants_runtime_python_version"
-  new_line = f"{expected_prefix}: {test_python_version.value}\n"
-  with open(PANTS_INI, 'r') as f:
-    original_pants_ini = list(f.readlines())
-  python_version_already_specified = any(line.startswith(expected_prefix) for line in original_pants_ini)
-  if test_python_version == PantsVersion.unspecified and python_version_already_specified:
-    with open(PANTS_INI, 'w') as f:
-      f.writelines(line for line in original_pants_ini if not line.startswith(expected_prefix))
-  if test_python_version != PantsVersion.unspecified and python_version_already_specified:
-    with open(PANTS_INI, 'w') as f:
-      f.writelines(
-          new_line if line.startswith(expected_prefix) else line
-          for line in original_pants_ini
-      )
-  if test_python_version != PantsVersion.unspecified and not python_version_already_specified:
-    with open(PANTS_INI, 'w') as f:
-      global_section_header_index = next((i for i, line in enumerate(original_pants_ini) if "[GLOBAL]" in line), None)
-      if global_section_header_index is None:
-        raise ValueError(f"You requested to use the python version {test_python_version}, but your "
-                         "pants.ini is missing a [GLOBAL] section header. Please add this and run again.")
-      new_lines = (original_pants_ini[:global_section_header_index]
-          + [new_line]
-          + original_pants_ini[global_section_header_index:])
-      f.writelines(new_line)
+  original_lines = read_pants_ini()
+  requested_python_version = None if test_python_version == PythonVersion.unspecified else test_python_version.value
+  write_config_entry(entry_name="pants_runtime_python_version", entry_value=requested_python_version)
   yield
+  write_pants_ini(original_lines)
+
+
+def read_pants_ini() -> List[str]:
+  with open(PANTS_INI, 'r') as f:
+    return list(f.readlines())
+
+
+def write_pants_ini(lines: Iterable[str]) -> None:
   with open(PANTS_INI, 'w') as f:
-    f.writelines(original_pants_ini)
+    f.writelines(lines)
+
+
+def write_config_entry(*, entry_name: str, entry_value: Optional[str]) -> None:
+  """Rewrite the entry in pants.ini to use the given value, entirely removing the entry if entry_value is None."""
+  original_lines = read_pants_ini()
+  entry_already_defined = any(line.startswith(entry_name) for line in original_lines)
+  # import pdb; pdb.set_trace()
+  if entry_value is None and not entry_already_defined:
+    new_lines = original_lines
+  elif entry_value is None and entry_already_defined:
+    new_lines = (line for line in original_lines if entry_name not in line)
+  elif entry_value is not None and entry_already_defined:
+    new_lines = (line if not line.startswith(entry_name) else f"{entry_name}: {entry_value}" for line in original_lines)
+  else:
+    global_section_header_index = next((i for i, line in enumerate(original_lines) if "[GLOBAL]" in line), None)
+    if global_section_header_index is None:
+      raise ValueError("Your pants.ini is missing a [GLOBAL] section header. Please add this and run again.")
+    new_lines = original_lines
+    new_lines.insert(global_section_header_index + 1, f"{entry_name}: {entry_value}")
+  write_pants_ini(new_lines)
 
 
 if __name__ == "__main__":
