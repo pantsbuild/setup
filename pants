@@ -53,14 +53,14 @@ function get_pants_ini_config_value {
 }
 
 function determine_pants_runtime_python_version {
-	  python_bin_name="${PYTHON:-python2.7}"
-	  if which "${python_bin_name}" >/dev/null; then
-	    echo "$(which ${python_bin_name})"
-	  else
-	    echo "${python_bin_name} could not be found on your PATH! Pants will not work." 1>&2
-	    exit 1
-	  fi
-	}
+  python_bin_name="${PYTHON:-python2.7}"
+  if which "${python_bin_name}" >/dev/null; then
+    echo "$(which ${python_bin_name})"
+  else
+    echo "${python_bin_name} could not be found on your PATH! Pants will not work." 1>&2
+    exit 1
+  fi
+}
 
 # TODO(John Sirois): GC race loser tmp dirs leftover from bootstrap_XXX
 # functions.  Any tmp dir w/o a symlink pointing to it can go.
