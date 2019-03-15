@@ -73,39 +73,31 @@ def run_tests(*, test_pants_version: PantsVersion, test_python_version: PythonVe
 @contextmanager
 def setup_pants_version(test_pants_version: PantsVersion):
   """Modify pants.ini to allow the pants version to be unspecified or keep what was originally there."""
-  original_config = read_config()
   updated_config = read_config()
   config_entry = "pants_version"
   if test_pants_version == PantsVersion.unspecified:
     updated_config.remove_option(GLOBAL_SECTION, config_entry)
     # NB: We also remove plugins as they refer to the pants_version.
     updated_config.remove_option(GLOBAL_SECTION, "plugins")
-    write_config(updated_config)
   elif test_pants_version == PantsVersion.config:
     if config_entry not in original_config[GLOBAL_SECTION]:
       raise ValueError("You requested to use the pants_version from pants.ini for this test, but pants.ini "
                        "does not include a pants_version!")
-  try:
+  with temporarily_rewrite_config(updated_config):
     yield
-  finally:
-    write_config(original_config)
 
 
 @contextmanager
 def setup_python_version(test_python_version: PythonVersion):
   """Modify pants.ini to allow the Python version to be unspecified or change to what was requested."""
-  original_config = read_config()
   updated_config = read_config()
   config_entry = "pants_runtime_python_version"
   if test_python_version == PythonVersion.unspecified:
     updated_config.remove_option(GLOBAL_SECTION, config_entry)
   else:
     updated_config[GLOBAL_SECTION][config_entry] = test_python_version.value
-  write_config(updated_config)
-  try:
+  with temporarily_rewrite_config(updated_config):
     yield
-  finally:
-    write_config(original_config)
 
 
 def read_config() -> configparser.ConfigParser:
@@ -117,6 +109,16 @@ def read_config() -> configparser.ConfigParser:
 def write_config(config: configparser.ConfigParser) -> None:
   with open(PANTS_INI, 'w') as f:
     config.write(f)
+
+
+@contextmanager
+def temporarily_rewrite_config(updated_config: configparser.ConfigParser) -> None:
+  original_config = read_config()
+  write_config(updated_config)
+  try:
+    yield
+  finally:
+    write_config(original_config)
 
 
 if __name__ == "__main__":
