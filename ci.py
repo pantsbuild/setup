@@ -104,8 +104,12 @@ def setup_python_version(test_python_version: PythonVersion):
   else:
     updated_config[GLOBAL_SECTION][config_entry] = test_python_version.value
   write_config(updated_config)
-  yield
-  write_config(original_config)
+  try:
+    yield
+  except subprocess.CalledProcessError:
+    raise
+  finally:
+    write_config(original_config)
 
 
 def read_config() -> configparser.ConfigParser:
