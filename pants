@@ -11,7 +11,7 @@
 # You can learn more here: https://pantsbuild.github.io/setup
 # ====================================================================
 
-set -eou pipefail
+set -eoux pipefail
 
 PYTHON_BIN_NAME="${PYTHON:-unspecified}"
 
@@ -71,9 +71,9 @@ print(major_minor_version)
 EOF
 }
 
-function check_interpreter_on_path {
+function get_exe_path_or_die {
   python="$1"
-  if ! which "${python}" >/dev/null; then
+  if ! which "${python}"; then
     die "Could not find ${python}. Please ensure ${python} is on your PATH."
   fi
 }
@@ -98,8 +98,7 @@ function determine_pants_runtime_python_version {
     fi
     python_bin_name="python${interpreter_version}"
   fi
-  check_interpreter_on_path "${python_bin_name}"
-  which "${python_bin_name}"
+  get_exe_path_or_die "${python_bin_name}"
 }
 
 # TODO(John Sirois): GC race loser tmp dirs leftover from bootstrap_XXX
