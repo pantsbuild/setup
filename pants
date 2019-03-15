@@ -11,7 +11,7 @@
 # You can learn more here: https://pantsbuild.github.io/setup
 # ====================================================================
 
-set -eoux pipefail
+set -eou pipefail
 
 PYTHON_BIN_NAME="${PYTHON:-unspecified}"
 
