@@ -54,6 +54,13 @@ function tempdir {
   mktemp -d "$1"/pants.XXXXXX
 }
 
+function get_exe_path_or_die {
+  exe="$1"
+  if ! which "${exe}"; then
+    die "Could not find ${exe}. Please ensure ${exe} is on your PATH."
+  fi
+}
+
 function get_pants_ini_config_value {
   config_key="$1"
   valid_delimiters="[:=]"
@@ -71,12 +78,6 @@ print(major_minor_version)
 EOF
 }
 
-function get_exe_path_or_die {
-  python="$1"
-  if ! which "${python}"; then
-    die "Could not find ${python}. Please ensure ${python} is on your PATH."
-  fi
-}
 
 # The high-level flow:
 # 1.) Resolve the Python interpreter, first reading from the env var $PYTHON,
