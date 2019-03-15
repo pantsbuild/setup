@@ -87,8 +87,6 @@ def setup_pants_version(test_pants_version: PantsVersion):
                        "does not include a pants_version!")
   try:
     yield
-  except subprocess.CalledProcessError:
-    raise
   finally:
     write_config(original_config)
 
@@ -106,8 +104,6 @@ def setup_python_version(test_python_version: PythonVersion):
   write_config(updated_config)
   try:
     yield
-  except subprocess.CalledProcessError:
-    raise
   finally:
     write_config(original_config)
 
