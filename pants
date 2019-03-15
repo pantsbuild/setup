@@ -78,7 +78,6 @@ print(major_minor_version)
 EOF
 }
 
-
 # The high-level flow:
 # 1.) Resolve the Python interpreter, first reading from the env var $PYTHON,
 #     then reading from pants.ini, then defaulting to `python2.7`.
