@@ -18,12 +18,12 @@ script:
   # when pants_version is unspecified. Add this test back once 1.15.0 is released.
   # - ./ci.py --pants-version unspecified --python-version 2.7
   # - ./ci.py --pants-version unspecified --python-version 3.6
-  # - if [[ "${python37_present}" = 'true' ]]; then \
+  # - if [[ "${python37_present}" = 'true' ]]; then
   #    ./ci.py --pants-version unspecified --python-version 3.7; fi
   - ./ci.py --pants-version config --python-version unspecified
   - ./ci.py --pants-version config --python-version 2.7
   - ./ci.py --pants-version config --python-version 3.6
-  - if [[ "${python37_present}" = 'true' ]]; then \
+  - if [[ "${python37_present}" = 'true' ]]; then
       ./ci.py --pants-version config --python-version 3.7; fi
 
 osx_setup: &osx_setup
