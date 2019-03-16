@@ -9,9 +9,8 @@ import subprocess
 from contextlib import contextmanager
 from enum import Enum
 
-
-PANTS_INI = 'pants.ini'
-GLOBAL_SECTION = "GLOBAL"
+from common import (CONFIG_GLOBAL_SECTION, PANTS_INI, banner, die, read_config,
+                    temporarily_rewrite_config, travis_section)
 
 
 class PantsVersion(Enum):
@@ -34,11 +33,9 @@ class PythonVersion(Enum):
 
 def main() -> None:
   args = create_parser().parse_args()
-  run_tests(
-    test_pants_version=args.pants_version,
-    test_python_version=args.python_version,
-    skip_pantsd_tests=args.skip_pantsd_tests
-  )
+  with setup_pants_version(args.pants_version):
+    with setup_python_version(args.python_version):
+      run_tests(skip_pantsd_tests=args.skip_pantsd_tests)
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -63,17 +60,19 @@ def create_parser() -> argparse.ArgumentParser:
   return parser
 
 
-def run_tests(*, test_pants_version: PantsVersion, test_python_version: PythonVersion, skip_pantsd_tests: bool) -> None:
+def run_tests(*, skip_pantsd_tests: bool) -> None:
   version_command = ["./pants", "--version"]
   list_command = ["./pants", "list", "::"]
   env_with_pantsd = {**os.environ, "PANTS_ENABLE_PANTSD": "True"}
-  with setup_pants_version(test_pants_version):
-    with setup_python_version(test_python_version):
-      subprocess.run(version_command, check=True)
-      subprocess.run(list_command, check=True)
-      if not skip_pantsd_tests:
-        subprocess.run(version_command, env=env_with_pantsd, check=True)
-        subprocess.run(list_command, env=env_with_pantsd, check=True)
+  with travis_section("PantsVersion", f"Testing `{' '.join(version_command)}`."):
+    subprocess.run(version_command, check=True)
+  with travis_section("PantsList", f"Testing `{' '.join(list_command)}`."):
+    subprocess.run(list_command, check=True)
+  if not skip_pantsd_tests:
+    with travis_section("PantsVersionDaemon", f"Testing `{' '.join(version_command)}` with pantsd enabled."):
+      subprocess.run(version_command, env=env_with_pantsd, check=True)
+    with travis_section("PantsListDaemon", f"Testing `{' '.join(list_command)}` with pantsd enabled."):
+      subprocess.run(list_command, env=env_with_pantsd, check=True)
 
 
 @contextmanager
@@ -82,13 +81,15 @@ def setup_pants_version(test_pants_version: PantsVersion):
   updated_config = read_config()
   config_entry = "pants_version"
   if test_pants_version == PantsVersion.unspecified:
-    updated_config.remove_option(GLOBAL_SECTION, config_entry)
+    updated_config.remove_option(CONFIG_GLOBAL_SECTION, config_entry)
     # NB: We also remove plugins as they refer to the pants_version.
-    updated_config.remove_option(GLOBAL_SECTION, "plugins")
+    updated_config.remove_option(CONFIG_GLOBAL_SECTION, "plugins")
+    banner(f"Temporarily removing `{config_entry}` from pants.ini.")
   elif test_pants_version == PantsVersion.config:
-    if config_entry not in updated_config[GLOBAL_SECTION]:
-      raise ValueError("You requested to use the pants_version from pants.ini for this test, but pants.ini "
-                       "does not include a pants_version!")
+    if config_entry not in updated_config[CONFIG_GLOBAL_SECTION]:
+      die(f"You requested to use `{config_entry}` from pants.ini, but pants.ini does not include `{config_entry}`!")
+    current_pants_version = updated_config[CONFIG_GLOBAL_SECTION][config_entry]
+    banner(f"Using the `{config_entry}` set in pants.ini: `{current_pants_version}`.")
   with temporarily_rewrite_config(updated_config):
     yield
 
@@ -99,32 +100,13 @@ def setup_python_version(test_python_version: PythonVersion):
   updated_config = read_config()
   config_entry = "pants_runtime_python_version"
   if test_python_version == PythonVersion.unspecified:
-    updated_config.remove_option(GLOBAL_SECTION, config_entry)
+    updated_config.remove_option(CONFIG_GLOBAL_SECTION, config_entry)
+    banner(f"Temporarily removing `{config_entry}` from pants.ini.")
   else:
-    updated_config[GLOBAL_SECTION][config_entry] = test_python_version.value
+    updated_config[CONFIG_GLOBAL_SECTION][config_entry] = test_python_version.value
+    banner(f"Temporarily rewriting `{config_entry}` to `{test_pants_version}`.")
   with temporarily_rewrite_config(updated_config):
     yield
-
-
-def read_config() -> configparser.ConfigParser:
-  cp = configparser.ConfigParser(delimiters={":"})
-  cp.read(PANTS_INI)
-  return cp
-
-
-def write_config(config: configparser.ConfigParser) -> None:
-  with open(PANTS_INI, 'w') as f:
-    config.write(f)
-
-
-@contextmanager
-def temporarily_rewrite_config(updated_config: configparser.ConfigParser) -> None:
-  original_config = read_config()
-  write_config(updated_config)
-  try:
-    yield
-  finally:
-    write_config(original_config)
 
 
 if __name__ == "__main__":
