@@ -92,6 +92,7 @@ def setup_pants_version(test_pants_version: PantsVersion):
     banner(f"Using the `{config_entry}` set in pants.ini: `{current_pants_version}`.")
   with temporarily_rewrite_config(updated_config):
     yield
+  banner(f"Restoring original `{config_entry}` value in pants.ini.")
 
 
 @contextmanager
@@ -107,6 +108,7 @@ def setup_python_version(test_python_version: PythonVersion):
     banner(f"Temporarily rewriting `{config_entry}` to `{test_python_version}`.")
   with temporarily_rewrite_config(updated_config):
     yield
+  banner(f"Restoring original `{config_entry}` value in pants.ini.")
 
 
 if __name__ == "__main__":
