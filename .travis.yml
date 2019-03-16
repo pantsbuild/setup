@@ -26,11 +26,11 @@ cache:
 pyenv_setup: &pyenv_setup >
   if [ ! -d "${PYENV_BIN}" ]; then
   rm -rf "${PYENV_ROOT}";
-  git clone https://github.com/pyenv/pyenv ${PYENV_ROOT}; 
+  git clone https://github.com/pyenv/pyenv "${PYENV_ROOT}";
   fi
 
 pyenv_install_py36: &pyenv_install_py36 >
- "${PYENV_BIN}" install "${PYENV_PY36_VERSION}"
+  ${PYENV_BIN} install "${PYENV_PY36_VERSION}"
 
 pyenv_install_py37: &pyenv_install_py37 >
   ${PYENV_BIN}" install "${PYENV_PY37_VERSION}"
