@@ -88,6 +88,12 @@ matrix:
       env:
         - *env_osx_openssl
         - CACHE_NAME="osx.sierra"
+      # OSX 10.12 Sierra frequently flakes when running with Pantsd. Restore the original
+      # tests once https://github.com/pantsbuild/pants/issues/6714 and
+      # https://github.com/pantsbuild/pants/issues/7323 are resolved.
+      script:
+        - ./ci.py --pants-version unspecified --skip-pantsd-tests
+        - ./ci.py --pants-version config --skip-pantsd-tests
 
     - name: "OSX 10.13 - High Sierra"
       <<: *osx_setup

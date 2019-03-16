@@ -24,7 +24,7 @@ class PantsVersion(Enum):
 
 def main() -> None:
   args = create_parser().parse_args()
-  run_tests(test_pants_version=args.pants_version)
+  run_tests(test_pants_version=args.pants_version, skip_pantsd_tests=args.skip_pantsd_tests)
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -37,18 +37,20 @@ def create_parser() -> argparse.ArgumentParser:
       required=True,
       help="Pants version to configure ./pants to use."
   )
+  parser.add_argument("--skip-pantsd-tests", action="store_true")
   return parser
 
 
-def run_tests(*, test_pants_version: PantsVersion) -> None:
+def run_tests(*, test_pants_version: PantsVersion, skip_pantsd_tests: bool) -> None:
   version_command = ["./pants", "--version"]
   list_command = ["./pants", "list", "::"]
   env_with_pantsd = {**os.environ, "PANTS_ENABLE_PANTSD": "True"}
   with setup_pants_version(test_pants_version):
     subprocess.run(version_command, check=True)
     subprocess.run(list_command, check=True)
-    subprocess.run(version_command, env=env_with_pantsd, check=True)
-    subprocess.run(list_command, env=env_with_pantsd, check=True)
+    if not skip_pantsd_tests:
+      subprocess.run(version_command, env=env_with_pantsd, check=True)
+      subprocess.run(list_command, env=env_with_pantsd, check=True)
 
 
 @contextmanager
