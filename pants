@@ -140,7 +140,7 @@ function bootstrap_pants {
       staging_dir=$(tempdir "${PANTS_BOOTSTRAP}")
       "${python}" "${venv_path}/virtualenv.py" --no-setuptools --no-download \
         "${staging_dir}/install"
-      "${staging_dir}/install/bin/pip" install -U pip
+      "${staging_dir}/install/bin/python" -m ensurepip --upgrade
       "${staging_dir}/install/bin/pip" install "${SETUPTOOLS_REQUIREMENT}"
       "${staging_dir}/install/bin/pip" install "${pants_requirement}"
       ln -s "${staging_dir}/install" "${staging_dir}/${target_folder_name}"
