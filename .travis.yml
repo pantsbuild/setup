@@ -104,6 +104,7 @@ matrix:
       env:
         - CACHE_NAME="linux.precise"
       before_install:
+        - *pyenv_setup
         - *pyenv_install_py36
         - *pyenv_global_py36
 
