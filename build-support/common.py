@@ -43,13 +43,13 @@ def elapsed_time() -> Tuple[int, int]:
 
 
 @contextmanager
-def travis_section(slug: str, message: str) -> None:
+def travis_section(slug: str, message: str):
   travis_fold_state = "/tmp/.travis_fold_current"
 
   def travis_fold(action: str, target: str) -> None:
     print(f"travis_fold:{action}:{target}\r{CLEAR_LINE}", end="")
 
-  def read_travis_fold_state() -> None:
+  def read_travis_fold_state() -> str:
     with open(travis_fold_state, "r") as f:
       return f.readline()
 
@@ -78,7 +78,7 @@ CONFIG_GLOBAL_SECTION = "GLOBAL"
 
 
 def read_config() -> configparser.ConfigParser:
-  cp = configparser.ConfigParser(delimiters={":"})
+  cp = configparser.ConfigParser(delimiters=[":"])
   cp.read(PANTS_INI)
   return cp
 
@@ -89,7 +89,7 @@ def write_config(config: configparser.ConfigParser) -> None:
 
 
 @contextmanager
-def temporarily_rewrite_config(updated_config: configparser.ConfigParser) -> None:
+def temporarily_rewrite_config(updated_config: configparser.ConfigParser):
   original_config = read_config()
   write_config(updated_config)
   try:
