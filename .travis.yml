@@ -10,6 +10,7 @@ env:
     - PYENV_PY37_VERSION=3.7.2
     - PYENV_ROOT="${PYENV_ROOT:-${HOME}/.pants_pyenv}"
     - PYENV_BIN="${PYENV_ROOT}/bin/pyenv"
+    - PATH="${PYENV_ROOT}/shims:${PATH}"
 
 script:
   # Linux Precise and Trusty cannot install Python 3.7 due to an outdated OpenSSL,
