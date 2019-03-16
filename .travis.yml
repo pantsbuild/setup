@@ -19,16 +19,15 @@ script:
   - ./ci.py --pants-version unspecified
   - ./ci.py --pants-version config
 
+cache:
+  directories:
+    - ${PYENV_ROOT}
+
 pyenv_setup: &pyenv_setup >
   if [ ! -d "${PYENV_BIN}" ]; then
   rm -rf "${PYENV_ROOT}";
   git clone https://github.com/pyenv/pyenv ${PYENV_ROOT}; 
   fi
-
-pyenv_cache: &pyenv_cache
-  cache:
-    directories:
-      - ${PYENV_ROOT}
 
 pyenv_install_py36: &pyenv_install_py36 >
  "${PYENV_BIN}" install "${PYENV_PY36_VERSION}"
@@ -45,7 +44,6 @@ pyenv_global_py36_py37: &pyenv_global_py36_py37 >
 osx_setup: &osx_setup
   os: osx
   language: generic
-  <<: *pyenv_cache
   addons:
     brew:
       packages:
@@ -103,7 +101,6 @@ matrix:
       <<: *linux_setup
       dist: precise
       sudo: required
-      <<: *pyenv_cache
       env:
         - CACHE_NAME="linux.precise"
       before_install:
@@ -114,11 +111,15 @@ matrix:
     - name: "Ubuntu 14.04 - Trusty"
       <<: *linux_setup
       dist: trusty
+      env:
+        - CACHE_NAME="linux.trusty"
       before_install:
         - pyenv global 2.7.14 3.6.3
 
     - name: "Ubuntu 16.04 - Xenial"
       <<: *linux_setup
       dist: xenial
+      env:
+        - CACHE_NAME="linux.xenial"
       before_install:
         - pyenv global 2.7.15 3.6.7 3.7.1
