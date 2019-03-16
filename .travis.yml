@@ -19,6 +19,14 @@ script:
   - ./ci.py --pants-version unspecified
   - ./ci.py --pants-version config
 
+pyenv_install_py36: &pyenv_install_py36 >
+  if [ ! -d "${PYENV_ROOT}" ]; then git clone https://github.com/pyenv/pyenv ${PYENV_ROOT}; fi
+    && "${PYENV_BIN}" install "${PYENV_PY36_VERSION}"
+
+pyenv_install_py37: &pyenv_install_py37 >
+  if [ ! -d "${PYENV_ROOT}" ]; then git clone https://github.com/pyenv/pyenv ${PYENV_ROOT}; fi
+    && "${PYENV_BIN}" install "${PYENV_PY37_VERSION}"
+
 osx_setup: &osx_setup
   os: osx
   language: generic
@@ -34,12 +42,8 @@ osx_setup: &osx_setup
       LDFLAGS="-L/usr/local/opt/openssl/lib"
       CPPFLAGS="-I/usr/local/opt/openssl/include"
   before_install:
-    - &pyenv_install_py36 >
-      if [ ! -d "${PYENV_ROOT}" ]; then git clone https://github.com/pyenv/pyenv ${PYENV_ROOT}; fi
-      && "${PYENV_BIN}" install "${PYENV_PY36_VERSION}"
-    - &pyenv_install_py37 >
-      if [ ! -d "${PYENV_ROOT}" ]; then git clone https://github.com/pyenv/pyenv ${PYENV_ROOT}; fi
-      && "${PYENV_BIN}" install "${PYENV_PY37_VERSION}"
+    - *pyenv_install_py36
+    - *pyenv_install_py37
     - ${PYENV_BIN} global "${PYENV_PY36_VERSION}" "${PYENV_PY37_VERSION}"
   before_script:
     # Override file handler and thread limits
