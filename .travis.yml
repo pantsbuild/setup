@@ -8,6 +8,9 @@ env:
   global:
     - PYENV_PY36_VERSION=3.6.8
     - PYENV_PY37_VERSION=3.7.2
+    - PYENV_ROOT="${HOME}/.pants_pyenv"
+    - PYENV_BIN="${PYENV_ROOT}/bin/pyenv"
+    - PATH="${PYENV_ROOT}/shims:${PATH}"
 
 script:
   # Linux Precise and Trusty cannot install Python 3.7 due to an outdated OpenSSL,
@@ -24,10 +27,6 @@ osx_setup: &osx_setup
       packages:
         - openssl
   env:
-    - &env_pyenv >
-      PYENV_ROOT="${HOME}/.pants_pyenv"
-      PYENV_BIN="${PYENV_ROOT}/bin/pyenv"
-      PATH="${PYENV_ROOT}/shims:${PATH}"
     - >
       # These flags are necessary to get OpenSSL working. See
       # https://github.com/pyenv/pyenv/wiki/Common-build-problems#error-the-python-ssl-extension-was-not-compiled-missing-the-openssl-lib.
@@ -74,8 +73,6 @@ matrix:
       <<: *linux_setup
       dist: precise
       sudo: required
-      env:
-        - *env_pyenv
       before_install:
         - *pyenv_install_py36
         - ${PYENV_BIN} global "${PYENV_PY36_VERSION}"
