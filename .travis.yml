@@ -30,16 +30,16 @@ pyenv_setup: &pyenv_setup >
   fi
 
 pyenv_install_py36: &pyenv_install_py36 >
-  ${PYENV_BIN} install "${PYENV_PY36_VERSION}"
+  "${PYENV_BIN}" install "${PYENV_PY36_VERSION}"
 
 pyenv_install_py37: &pyenv_install_py37 >
-  ${PYENV_BIN}" install "${PYENV_PY37_VERSION}"
+  "${PYENV_BIN}" install "${PYENV_PY37_VERSION}"
 
 pyenv_global_py36: &pyenv_global_py36 >
-  ${PYENV_BIN} global "${PYENV_PY36_VERSION}"
+  "${PYENV_BIN}" global "${PYENV_PY36_VERSION}"
 
 pyenv_global_py36_py37: &pyenv_global_py36_py37 >
-  ${PYENV_BIN} global "${PYENV_PY36_VERSION}" "${PYENV_PY37_VERSION}"
+  "${PYENV_BIN}" global "${PYENV_PY36_VERSION}" "${PYENV_PY37_VERSION}"
 
 osx_setup: &osx_setup
   os: osx
