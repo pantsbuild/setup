@@ -23,13 +23,23 @@ cache:
   directories:
     - ${PYENV_ROOT}
 
+pyenv_setup: &pyenv_setup >
+  if [ ! -d "${PYENV_BIN}" ]; then
+  rm -rf "${PYENV_ROOT}";
+  git clone https://github.com/pyenv/pyenv ${PYENV_ROOT}; 
+  fi
+
 pyenv_install_py36: &pyenv_install_py36 >
-  if [ ! -d "${PYENV_ROOT}" ]; then git clone https://github.com/pyenv/pyenv ${PYENV_ROOT}; fi
-  && "${PYENV_BIN}" install "${PYENV_PY36_VERSION}"
+ "${PYENV_BIN}" install "${PYENV_PY36_VERSION}"
 
 pyenv_install_py37: &pyenv_install_py37 >
-  if [ ! -d "${PYENV_ROOT}" ]; then git clone https://github.com/pyenv/pyenv ${PYENV_ROOT}; fi
-  && "${PYENV_BIN}" install "${PYENV_PY37_VERSION}"
+  ${PYENV_BIN}" install "${PYENV_PY37_VERSION}"
+
+pyenv_global_py36: &pyenv_global_py36 >
+  ${PYENV_BIN} global "${PYENV_PY36_VERSION}"
+
+pyenv_global_py36_py37: &pyenv_global_py36_py37 >
+  ${PYENV_BIN} global "${PYENV_PY36_VERSION}" "${PYENV_PY37_VERSION}"
 
 osx_setup: &osx_setup
   os: osx
@@ -46,9 +56,10 @@ osx_setup: &osx_setup
       LDFLAGS="-L/usr/local/opt/openssl/lib"
       CPPFLAGS="-I/usr/local/opt/openssl/include"
   before_install:
+    - *pyenv_setup
     - *pyenv_install_py36
     - *pyenv_install_py37
-    - ${PYENV_BIN} global "${PYENV_PY36_VERSION}" "${PYENV_PY37_VERSION}"
+    - *pyenv_global_py36_py37
   before_script:
     # Override file handler and thread limits
     - ulimit -c unlimited
@@ -94,7 +105,7 @@ matrix:
         - CACHE_NAME="linux.precise"
       before_install:
         - *pyenv_install_py36
-        - ${PYENV_BIN} global "${PYENV_PY36_VERSION}"
+        - *pyenv_global_py36
 
     - name: "Ubuntu 14.04 - Trusty"
       <<: *linux_setup
