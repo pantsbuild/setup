@@ -13,12 +13,12 @@
 
 set -eou pipefail
 
-PYTHON_BIN_NAME="${PYTHON:-python2.7}"
+PYTHON_BIN_NAME="${PYTHON:-unspecified}"
 
 PANTS_HOME="${PANTS_HOME:-${XDG_CACHE_HOME:-$HOME/.cache}/pants/setup}"
 PANTS_BOOTSTRAP="${PANTS_HOME}/bootstrap-$(uname -s)-$(uname -m)"
 
-VENV_VERSION=${VENV_VERSION:-16.0.0}
+VENV_VERSION=${VENV_VERSION:-16.4.3}
 
 VENV_PACKAGE=virtualenv-${VENV_VERSION}
 VENV_TARBALL=${VENV_PACKAGE}.tar.gz
@@ -44,6 +44,13 @@ function tempdir {
   mktemp -d "$1"/pants.XXXXXX
 }
 
+function get_exe_path_or_die {
+  exe="$1"
+  if ! which "${exe}"; then
+    die "Could not find ${exe}. Please ensure ${exe} is on your PATH."
+  fi
+}
+
 function get_pants_ini_config_value {
   config_key="$1"
   valid_delimiters="[:=]"
@@ -52,8 +59,18 @@ function get_pants_ini_config_value {
   sed -ne "/${prefix}/ s#${prefix}##p" pants.ini
 }
 
+function get_python_major_minor_version {
+  python_exe="$1"
+  "$python_exe" <<EOF
+import sys
+major_minor_version = ''.join(str(version_num) for version_num in sys.version_info[0:2])
+print(major_minor_version)
+EOF
+}
+
 # The high-level flow:
-# 1.) Resolve the Python interpreter, defaulting to `python2.7`.
+# 1.) Resolve the Python interpreter, first reading from the env var $PYTHON,
+#     then reading from pants.ini, then defaulting to `python2.7`.
 # 2.) Grab pants version from pants.ini or default to latest.
 # 3.) Check for a venv via a naming/path convention and execute if found.
 # 4.) Otherwise create venv and re-exec self.
@@ -62,11 +79,16 @@ function get_pants_ini_config_value {
 # are installed and up to date.
 
 function determine_pants_runtime_python_version {
-  if which "${PYTHON_BIN_NAME}" >/dev/null; then
-    which "${PYTHON_BIN_NAME}"
+  if [[ "${PYTHON_BIN_NAME}" != 'unspecified' ]]; then
+    python_bin_name="${PYTHON_BIN_NAME}"
   else
-    die "Could not find ${PYTHON_BIN_NAME}. Please ensure ${PYTHON_BIN_NAME} is on your PATH."
+    interpreter_version="$(get_pants_ini_config_value 'pants_runtime_python_version')"
+    if [[ -z "${interpreter_version}" ]]; then
+      interpreter_version='2.7'
+    fi
+    python_bin_name="python${interpreter_version}"
   fi
+  get_exe_path_or_die "${python_bin_name}"
 }
 
 # TODO(John Sirois): GC race loser tmp dirs leftover from bootstrap_XXX
@@ -97,7 +119,8 @@ function bootstrap_pants {
     pants_version="unspecified"
   fi
 
-  target_folder_name="${pants_version}"
+  python_major_minor_version="$(get_python_major_minor_version "${python}")"
+  target_folder_name="${pants_version}_py${python_major_minor_version}"
 
   if [[ ! -d "${PANTS_BOOTSTRAP}/${target_folder_name}" ]]; then
     (
