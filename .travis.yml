@@ -75,6 +75,19 @@ matrix:
     - name: "OSX 10.12 - Sierra"
       <<: *osx_setup
       osx_image: xcode9.2
+      # OSX 10.12 Sierra frequently flakes when running with Pantsd. Restore the original
+      # tests once https://github.com/pantsbuild/pants/issues/6714 and
+      # https://github.com/pantsbuild/pants/issues/7323 are resolved.
+      script:
+        - ./ci.py --pants-version unspecified --skip-pantsd-tests
+        # TODO: add these once 1.15.0 is released.
+        # - ./ci.py --pants-version unspecified --python-version 2.7
+        # - ./ci.py --pants-version unspecified --python-version 3.6
+        # - ./ci.py --pants-version unspecified --python-version 3.7
+        - ./ci.py --pants-version config --python-version unspecified --skip-pantsd-tests
+        - ./ci.py --pants-version config --python-version 2.7 --skip-pantsd-tests
+        - ./ci.py --pants-version config --python-version 3.6 --skip-pantsd-tests
+        - ./ci.py --pants-version config --python-version 3.7 --skip-pantsd-tests
 
     - name: "OSX 10.13 - High Sierra"
       <<: *osx_setup

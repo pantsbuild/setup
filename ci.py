@@ -34,7 +34,11 @@ class PythonVersion(Enum):
 
 def main() -> None:
   args = create_parser().parse_args()
-  run_tests(test_pants_version=args.pants_version, test_python_version=args.python_version)
+  run_tests(
+    test_pants_version=args.pants_version,
+    test_python_version=args.python_version,
+    skip_pantsd_tests=args.skip_pantsd_tests
+  )
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -55,10 +59,11 @@ def create_parser() -> argparse.ArgumentParser:
       required=True,
       help="Python version to configure ./pants to use."
   )
+  parser.add_argument("--skip-pantsd-tests", action="store_true")
   return parser
 
 
-def run_tests(*, test_pants_version: PantsVersion, test_python_version: PythonVersion) -> None:
+def run_tests(*, test_pants_version: PantsVersion, test_python_version: PythonVersion, skip_pantsd_tests: bool) -> None:
   version_command = ["./pants", "--version"]
   list_command = ["./pants", "list", "::"]
   env_with_pantsd = {**os.environ, "PANTS_ENABLE_PANTSD": "True"}
@@ -66,8 +71,9 @@ def run_tests(*, test_pants_version: PantsVersion, test_python_version: PythonVe
     with setup_python_version(test_python_version):
       subprocess.run(version_command, check=True)
       subprocess.run(list_command, check=True)
-      subprocess.run(version_command, env=env_with_pantsd, check=True)
-      subprocess.run(list_command, env=env_with_pantsd, check=True)
+      if not skip_pantsd_tests:
+        subprocess.run(version_command, env=env_with_pantsd, check=True)
+        subprocess.run(list_command, env=env_with_pantsd, check=True)
 
 
 @contextmanager
