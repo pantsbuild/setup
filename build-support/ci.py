@@ -104,7 +104,7 @@ def setup_python_version(test_python_version: PythonVersion):
     banner(f"Temporarily removing `{config_entry}` from pants.ini.")
   else:
     updated_config[CONFIG_GLOBAL_SECTION][config_entry] = test_python_version.value
-    banner(f"Temporarily rewriting `{config_entry}` to `{test_pants_version}`.")
+    banner(f"Temporarily rewriting `{config_entry}` to `{test_python_version}`.")
   with temporarily_rewrite_config(updated_config):
     yield
 
