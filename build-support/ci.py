@@ -3,13 +3,12 @@
 # Licensed under the Apache License, Version 2.0 (see LICENSE).
 
 import argparse
-import configparser
 import os
 import subprocess
 from contextlib import contextmanager
 from enum import Enum
 
-from common import (CONFIG_GLOBAL_SECTION, PANTS_INI, banner, die, read_config,
+from common import (CONFIG_GLOBAL_SECTION, banner, die, read_config,
                     temporarily_rewrite_config, travis_section)
 
 
