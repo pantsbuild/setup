@@ -14,31 +14,31 @@ from typing import Tuple
 # Logging utils
 # --------------------------------------------------------
 
-SCRIPT_START_TIME = time.time()
+_SCRIPT_START_TIME = time.time()
 
-CLEAR_LINE = "\x1b[K"
-COLOR_BLUE = "\x1b[34m"
-COLOR_RED = "\x1b[31m"
-COLOR_GREEN = "\x1b[32m"
-COLOR_RESET = "\x1b[0m"
+_CLEAR_LINE = "\x1b[K"
+_COLOR_BLUE = "\x1b[34m"
+_COLOR_RED = "\x1b[31m"
+_COLOR_GREEN = "\x1b[32m"
+_COLOR_RESET = "\x1b[0m"
 
 
 def die(message: str) -> None:
-  raise SystemExit(f"{COLOR_RED}{message}{COLOR_RESET}")
+  raise SystemExit(f"{_COLOR_RED}{message}{_COLOR_RESET}")
 
 
 def green(message: str) -> None:
-  print(f"{COLOR_GREEN}{message}{COLOR_RESET}")
+  print(f"{_COLOR_GREEN}{message}{_COLOR_RESET}")
 
 
 def banner(message: str) -> None:
   minutes, seconds = elapsed_time()
-  print(f"{COLOR_BLUE}[=== {minutes:02d}:{seconds:02d} {message} ===]{COLOR_RESET}")
+  print(f"{_COLOR_BLUE}[=== {minutes:02d}:{seconds:02d} {message} ===]{_COLOR_RESET}")
 
 
 def elapsed_time() -> Tuple[int, int]:
   now = time.time()
-  elapsed_seconds = now - SCRIPT_START_TIME
+  elapsed_seconds = now - _SCRIPT_START_TIME
   return int(elapsed_seconds // 60), int(elapsed_seconds % 60)
 
 
@@ -47,7 +47,7 @@ def travis_section(slug: str, message: str):
   travis_fold_state = "/tmp/.travis_fold_current"
 
   def travis_fold(action: str, target: str) -> None:
-    print(f"travis_fold:{action}:{target}\r{CLEAR_LINE}", end="")
+    print(f"travis_fold:{action}:{target}\r{_CLEAR_LINE}", end="")
 
   def read_travis_fold_state() -> str:
     with open(travis_fold_state, "r") as f:
