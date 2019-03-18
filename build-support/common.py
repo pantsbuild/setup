@@ -38,8 +38,8 @@ def banner(message: str) -> None:
 
 def elapsed_time() -> Tuple[int, int]:
   now = time.time()
-  elapsed_seconds = now - _SCRIPT_START_TIME
-  return int(elapsed_seconds // 60), int(elapsed_seconds % 60)
+  elapsed_seconds = int(now - _SCRIPT_START_TIME)
+  return elapsed_seconds // 60, elapsed_seconds % 60
 
 
 @contextmanager
