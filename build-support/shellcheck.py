@@ -15,8 +15,8 @@ def main() -> None:
 
 def ensure_shellcheck_installed() -> None:
   if shutil.which("shellcheck") is None:
-    die("`shellcheck` not installed! You may download this through brew or apt. "
-        "See https://www.shellcheck.net.")
+    die("`shellcheck` not installed! You may download this through brew, apt, or yum. "
+        "See https://github.com/koalaman/shellcheck#installing.")
 
 
 def run_shellcheck() -> None:
