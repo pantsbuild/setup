@@ -70,7 +70,8 @@ def run_tests_with_env(*,
     pants_version: PantsVersion, python_version: PythonVersion, skip_pantsd_tests: bool
   ) -> None:
   slug = f"Tests_{pants_version}_{python_version}"
-  with travis_section(slug, f"Running tests with `--pants-version={pants_version}` and `--python_version={python_version}`."):
+  banner_message = f"Running tests with `--pants-version={pants_version}` and `--python_version={python_version}`."
+  with travis_section(slug, banner_message):
     with setup_pants_version(pants_version):
       with setup_python_version(python_version):
         run_tests(skip_pantsd_tests=skip_pantsd_tests)
