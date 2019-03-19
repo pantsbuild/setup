@@ -61,6 +61,18 @@ linux_setup: &linux_setup
 
 matrix:
   include:
+    - name: "Lint ./pants script"
+      <<: *linux_setup
+      dist: xenial
+      before_install:
+        - pyenv global 3.6.7
+      addons:
+        apt:
+          packages:
+            - shellcheck
+      script:
+        - ./build-support/shellcheck.py
+
     - name: "OSX 10.11 - El Capitan"
       <<: *osx_setup
       osx_image: xcode8.0
