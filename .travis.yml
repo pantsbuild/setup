@@ -68,7 +68,7 @@ linux_setup: &linux_setup
 
 matrix:
   include:
-    - name: "Linter and formatting check"
+    - name: "Lint ./pants script"
       <<: *linux_setup
       dist: xenial
       before_install:
