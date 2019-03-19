@@ -3,6 +3,7 @@
 # Licensed under the Apache License, Version 2.0 (see LICENSE).
 
 import argparse
+import itertools
 import os
 import subprocess
 from contextlib import contextmanager
@@ -32,46 +33,62 @@ class PythonVersion(Enum):
 
 def main() -> None:
   args = create_parser().parse_args()
-  with setup_pants_version(args.pants_version):
-    with setup_python_version(args.python_version):
-      run_tests(skip_pantsd_tests=args.skip_pantsd_tests)
+  envs = itertools.product(args.pants_versions, args.python_versions)
+  for pants_version, python_version in envs:
+    run_tests_with_env(
+      pants_version=pants_version,
+      python_version=python_version,
+      skip_pantsd_tests=args.skip_pantsd_tests
+    )
 
 
 def create_parser() -> argparse.ArgumentParser:
   parser = argparse.ArgumentParser(description="Utility to run CI for the setup repo.")
   parser.add_argument(
-      "--pants-version",
+      "--pants-versions",
       action="store",
       type=PantsVersion,
       choices=list(PantsVersion),
       required=True,
+      nargs="+",
       help="Pants version to configure ./pants to use."
   )
   parser.add_argument(
-      "--python-version",
+      "--python-versions",
       action="store",
       type=PythonVersion,
       choices=list(PythonVersion),
       required=True,
+      nargs="+",
       help="Python version to configure ./pants to use."
   )
   parser.add_argument("--skip-pantsd-tests", action="store_true")
   return parser
 
 
+def run_tests_with_env(*,
+    pants_version: PantsVersion, python_version: PythonVersion, skip_pantsd_tests: bool
+  ) -> None:
+  slug = f"Tests_{pants_version}_{python_version}"
+  with travis_section(slug, f"Running tests with `--pants-version={pants_version}` and `--python_version={python_version}`."):
+    with setup_pants_version(pants_version):
+      with setup_python_version(python_version):
+        run_tests(skip_pantsd_tests=skip_pantsd_tests)
+
+
 def run_tests(*, skip_pantsd_tests: bool) -> None:
   version_command = ["./pants", "--version"]
   list_command = ["./pants", "list", "::"]
   env_with_pantsd = {**os.environ, "PANTS_ENABLE_PANTSD": "True"}
-  with travis_section("PantsVersion", f"Testing `{' '.join(version_command)}`."):
-    subprocess.run(version_command, check=True)
-  with travis_section("PantsList", f"Testing `{' '.join(list_command)}`."):
-    subprocess.run(list_command, check=True)
+  banner(f"Testing `{' '.join(version_command)}`.")
+  subprocess.run(version_command, check=True)
+  banner(f"Testing `{' '.join(list_command)}`.")
+  subprocess.run(list_command, check=True)
   if not skip_pantsd_tests:
-    with travis_section("PantsVersionDaemon", f"Testing `{' '.join(version_command)}` with pantsd enabled."):
-      subprocess.run(version_command, env=env_with_pantsd, check=True)
-    with travis_section("PantsListDaemon", f"Testing `{' '.join(list_command)}` with pantsd enabled."):
-      subprocess.run(list_command, env=env_with_pantsd, check=True)
+    banner(f"Testing `{' '.join(version_command)}` with pantsd enabled.")
+    subprocess.run(version_command, env=env_with_pantsd, check=True)
+    banner(f"Testing `{' '.join(list_command)}` with pantsd enabled.")
+    subprocess.run(list_command, env=env_with_pantsd, check=True)
 
 
 @contextmanager
