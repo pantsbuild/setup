@@ -22,12 +22,12 @@ def main() -> None:
 
 def assert_file_created() -> None:
   if not Path(PANTS_INI).is_file():
-    die("pants.ini not created!")
+    die("pants.ini not created in the repo root.")
 
 
 def assert_pants_version_pinned_properly(config: configparser.ConfigParser) -> None:
   if "pants_version" not in config[CONFIG_GLOBAL_SECTION]:
-    die("`pants_version` not pinned!")
+    die("`pants_version` not pinned.")
   pinned_pants_v = config[CONFIG_GLOBAL_SECTION]["pants_version"]
   with setup_pants_version(PantsVersion.unspecified):
     unconfigured_pants_v = subprocess.run(
@@ -35,7 +35,7 @@ def assert_pants_version_pinned_properly(config: configparser.ConfigParser) -> N
     ).stdout.strip()
   if pinned_pants_v != unconfigured_pants_v:
     die(f"The pinned `pants_version` ({pinned_pants_v}) does not match the value when "
-        f"leaving `pants_version` unspecified ({unconfigured_pants_v})")
+        f"leaving `pants_version` unspecified ({unconfigured_pants_v}).")
 
 
 if __name__ == "__main__":
