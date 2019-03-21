@@ -74,6 +74,7 @@ EOF
 # 2.) Grab pants version from pants.ini or default to latest.
 # 3.) Check for a venv via a naming/path convention and execute if found.
 # 4.) Otherwise create venv and re-exec self.
+# 5.) Check if pants.ini already exists. If not, create with sensible defaults then exit.
 #
 # After that pants itself will handle making sure any requested plugins
 # are installed and up to date.
@@ -137,10 +138,25 @@ function bootstrap_pants {
   echo "${PANTS_BOOTSTRAP}/${target_folder_name}"
 }
 
+function create_pants_ini_if_missing {
+  if [[ ! -f "pants.ini" ]]; then
+    log "pants.ini not detected in the repository root. Creating with sensible defaults."
+    touch "pants.ini"
+    echo "[GLOBAL]" >> "pants.ini"
+    # Pin pants_version
+    pants_version="$(./pants -V)"
+    log "Pinning \`pants_version\` to \`${pants_version}\`."
+    echo "pants_version: ${pants_version}" >> "pants.ini"
+    green "pants.ini created. Please modify as desired!"
+    exit 0
+  fi
+}
+
 # Ensure we operate from the context of the ./pants buildroot.
 cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 python="$(determine_pants_runtime_python_version)"
 pants_dir="$(bootstrap_pants "${python}")"
+create_pants_ini_if_missing
 
 
 # We set the env var no_proxy to '*', to work around an issue with urllib using non
