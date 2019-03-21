@@ -10,39 +10,42 @@ parsing values from pants.ini and that the virtual env actually works. """
 
 import configparser
 import subprocess
+import unittest
+from contextlib import contextmanager
 from pathlib import Path
 
 from ci import PantsVersion, setup_pants_version
-from common import (CONFIG_GLOBAL_SECTION, PANTS_INI, die, read_config,
+from common import (CONFIG_GLOBAL_SECTION, PANTS_INI, banner, read_config,
                     temporarily_remove_config, travis_section)
 
 
-def main() -> None:
-  with travis_section("PantsIniAutoGen", "Testing auto-generation of pants.ini."):
+class TestPantsIniAutogen(unittest.TestCase):
+
+  @contextmanager
+  def autogen_pants_ini(self):
+    banner("Temporarily removing pants.ini.")
     with temporarily_remove_config():
       subprocess.run(["./pants"], check=True)
-      assert_file_created()
+      yield
+    banner("Restoring original pants.ini.")
+
+  def test_file_created(self) -> None:
+    with self.autogen_pants_ini():
+      self.assertTrue(Path(PANTS_INI).is_file())
+
+
+  def test_pants_versions_pinned_properly(self) -> None:
+    with self.autogen_pants_ini():
       config = read_config()
-      assert_pants_version_pinned_properly(config)
-
-
-def assert_file_created() -> None:
-  if not Path(PANTS_INI).is_file():
-    die("pants.ini not created in the repo root.")
-
-
-def assert_pants_version_pinned_properly(config: configparser.ConfigParser) -> None:
-  if "pants_version" not in config[CONFIG_GLOBAL_SECTION]:
-    die("`pants_version` not pinned.")
-  pinned_pants_v = config[CONFIG_GLOBAL_SECTION]["pants_version"]
-  with setup_pants_version(PantsVersion.unspecified):
-    unconfigured_pants_v = subprocess.run(
-      ["./pants", "-V"], stdout=subprocess.PIPE, encoding="utf-8", check=True
-    ).stdout.strip()
-  if pinned_pants_v != unconfigured_pants_v:
-    die(f"The pinned `pants_version` ({pinned_pants_v}) does not match the value when "
-        f"leaving `pants_version` unspecified ({unconfigured_pants_v}).")
+      self.assertIn("pants_version", config[CONFIG_GLOBAL_SECTION])
+      pinned_pants_version = config[CONFIG_GLOBAL_SECTION]["pants_version"]
+      with setup_pants_version(PantsVersion.unspecified):
+        unconfigured_pants_version = subprocess.run(
+          ["./pants", "-V"], stdout=subprocess.PIPE, encoding="utf-8", check=True
+        ).stdout.strip()
+      self.assertEqual(pinned_pants_version, unconfigured_pants_version)
 
 
 if __name__ == "__main__":
-  main()
+  with travis_section("PantsIniAutoGen", "Testing auto-generation of pants.ini."):
+    unittest.main()
