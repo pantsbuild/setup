@@ -100,9 +100,9 @@ def temporarily_rewrite_config(updated_config: configparser.ConfigParser):
 
 @contextmanager
 def temporarily_remove_config():
-  original_config = read_config()
-  Path(PANTS_INI).unlink()
+  Path(PANTS_INI).rename("pants.ini.orig")
   try:
     yield
   finally:
-    write_config(original_config)
+    Path(PANTS_INI).unlink()
+    Path("pants.ini.orig").rename("pants.ini")
