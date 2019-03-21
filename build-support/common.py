@@ -96,3 +96,13 @@ def temporarily_rewrite_config(updated_config: configparser.ConfigParser):
     yield
   finally:
     write_config(original_config)
+
+
+@contextmanager
+def temporarily_remove_config():
+  original_config = read_config()
+  Path(PANTS_INI).unlink()
+  try:
+    yield
+  finally:
+    write_config(original_config)

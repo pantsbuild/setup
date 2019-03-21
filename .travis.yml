@@ -18,6 +18,7 @@ script:
   - ./build-support/ci.py
     --pants-versions config
     --python-versions unspecified 2.7 3.6 3.7
+  - ./build-support/test_pants_ini_autogen.py
 
 osx_setup: &osx_setup
   os: osx
@@ -92,6 +93,7 @@ matrix:
           --pants-versions config
           --python-versions unspecified 2.7 3.6
           --skip-pantsd-tests
+        - ./build-support/test_pants_ini_autogen.py
 
 
     - name: "OSX 10.13 - High Sierra"
@@ -114,6 +116,7 @@ matrix:
         - ./build-support/ci.py
           --pants-versions config
           --python-versions unspecified 2.7 3.6
+        - ./build-support/test_pants_ini_autogen.py
 
     - name: "Ubuntu 14.04 - Trusty"
       <<: *linux_setup
@@ -127,6 +130,7 @@ matrix:
         - ./build-support/ci.py
           --pants-versions config
           --python-versions unspecified 2.7 3.6
+        - ./build-support/test_pants_ini_autogen.py
 
 
     - name: "Ubuntu 16.04 - Xenial"
