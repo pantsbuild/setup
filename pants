@@ -52,13 +52,14 @@ function get_exe_path_or_die {
 }
 
 function get_pants_ini_config_value {
+  if [[ ! -f "pants.ini" ]]; then
+    return 0
+  fi
   config_key="$1"
   valid_delimiters="[:=]"
   optional_space="[[:space:]]*"
   prefix="^${config_key}${optional_space}${valid_delimiters}${optional_space}"
-  if [[ -f "pants.ini" ]]; then
-    sed -ne "/${prefix}/ s#${prefix}##p" pants.ini
-  fi
+  sed -ne "/${prefix}/ s#${prefix}##p" pants.ini
 }
 
 function get_python_major_minor_version {
@@ -141,17 +142,19 @@ function bootstrap_pants {
 }
 
 function create_pants_ini_if_missing {
-  if [[ ! -f "pants.ini" ]]; then
-    log "Config file \`pants.ini\` not detected in the repository root. Creating with sensible defaults.\n"
-    touch "pants.ini"
-    echo "[GLOBAL]" >> "pants.ini"
-    # Pin pants_version
-    pants_version="$(./pants -V)"
-    log "* Pinning \`pants_version\` to the most recent stable release: ${pants_version}."
-    echo "pants_version: ${pants_version}" >> "pants.ini"
-    green "\n\`pants.ini\` created. You may now run \`./pants\` normally."
-    exit 0
+  if [[ -f "pants.ini" ]]; then
+    return 0
   fi
+  log "Config file \`pants.ini\` not detected in the repository root. Creating with sensible defaults.\n"
+  touch "pants.ini"
+  pants_version="$(./pants -V)"
+  log "* Pinning \`pants_version\` to the most recent stable release: ${pants_version}."
+  cat <<EOF >> "pants.ini"
+[GLOBAL]
+pants_version: ${pants_version}
+EOF
+  green "\n\`pants.ini\` created. You may now run \`./pants\`."
+  exit 0
 }
 
 # Ensure we operate from the context of the ./pants buildroot.

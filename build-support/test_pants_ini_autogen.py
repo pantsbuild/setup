@@ -2,6 +2,12 @@
 # Copyright 2019 Pants project contributors (see CONTRIBUTORS.md).
 # Licensed under the Apache License, Version 2.0 (see LICENSE).
 
+"""Test that auto-generation of pants.ini works as expected.
+
+Note this is a separate file from ci.py because we only want to test the auto-generation
+part of ./pants here, and leave it to ci.py to test the other behavior like correctly
+parsing values from pants.ini and that the virtual env actually works. """
+
 import configparser
 import subprocess
 from pathlib import Path
