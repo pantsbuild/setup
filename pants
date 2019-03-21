@@ -142,14 +142,14 @@ function bootstrap_pants {
 
 function create_pants_ini_if_missing {
   if [[ ! -f "pants.ini" ]]; then
-    log "pants.ini not detected in the repository root. Creating with sensible defaults."
+    log "Config file \`pants.ini\` not detected in the repository root. Creating with sensible defaults.\n"
     touch "pants.ini"
     echo "[GLOBAL]" >> "pants.ini"
     # Pin pants_version
     pants_version="$(./pants -V)"
-    log "Pinning \`pants_version\` to \`${pants_version}\`."
+    log "* Pinning \`pants_version\` to \`${pants_version}\`."
     echo "pants_version: ${pants_version}" >> "pants.ini"
-    green "pants.ini created. Please modify as desired!"
+    green "\npants.ini created. You may now run \`./pants\` normally."
     exit 0
   fi
 }
