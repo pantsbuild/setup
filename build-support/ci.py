@@ -8,6 +8,7 @@ import os
 import subprocess
 from contextlib import contextmanager
 from enum import Enum
+from typing import List
 
 from common import (CONFIG_GLOBAL_SECTION, banner, die, read_config,
                     temporarily_rewrite_config, travis_section)
@@ -79,16 +80,21 @@ def run_tests_with_env(*,
 def run_tests(*, skip_pantsd_tests: bool) -> None:
   version_command = ["./pants", "--version"]
   list_command = ["./pants", "list", "::"]
-  env_with_pantsd = {**os.environ, "PANTS_ENABLE_PANTSD": "True"}
-  banner(f"Testing `{' '.join(version_command)}`.")
-  subprocess.run(version_command, check=True)
-  banner(f"Testing `{' '.join(list_command)}`.")
-  subprocess.run(list_command, check=True)
+
+  def run_test(command: List[str]) -> None:
+    banner(f"Testing `{' '.join(command)}`.")
+    subprocess.run(command, check=True)
+
+  def run_test_with_pantsd(command: List[str]) -> None:
+    env_with_pantsd = {**os.environ, "PANTS_ENABLE_PANTSD": "True"}
+    banner(f"Testing `{' '.join(command)}` with pantsd enabled.")
+    subprocess.run(command, env=env_with_pantsd, check=True)
+
+  run_test(version_command)
+  run_test(list_command)
   if not skip_pantsd_tests:
-    banner(f"Testing `{' '.join(version_command)}` with pantsd enabled.")
-    subprocess.run(version_command, env=env_with_pantsd, check=True)
-    banner(f"Testing `{' '.join(list_command)}` with pantsd enabled.")
-    subprocess.run(list_command, env=env_with_pantsd, check=True)
+    run_test_with_pantsd(version_command)
+    run_test_with_pantsd(list_command)
 
 
 @contextmanager
