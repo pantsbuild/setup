@@ -52,7 +52,7 @@ function get_exe_path_or_die {
 }
 
 function get_pants_ini_config_value {
-  if [[ ! -f "pants.ini" ]]; then
+  if [[ ! -f 'pants.ini' ]]; then
     return 0
   fi
   config_key="$1"
@@ -141,11 +141,8 @@ function bootstrap_pants {
   echo "${PANTS_BOOTSTRAP}/${target_folder_name}"
 }
 
-function create_pants_ini_if_missing {
-  if [[ -f "pants.ini" ]]; then
-    return 0
-  fi
-  log "Config file \`pants.ini\` not detected in the repository root. Creating with sensible defaults.\n"
+function autogen_pants_ini {
+  log "Config file \`pants.ini\` not detected in the repository root. Creating with sensible defaults:\n"
   touch "pants.ini"
   pants_version="$(./pants -V)"
   log "* Pinning \`pants_version\` to the most recent stable release: ${pants_version}."
@@ -154,14 +151,16 @@ function create_pants_ini_if_missing {
 pants_version: ${pants_version}
 EOF
   green "\n\`pants.ini\` created. You may now run \`./pants\`."
-  exit 0
 }
 
 # Ensure we operate from the context of the ./pants buildroot.
 cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 python="$(determine_pants_runtime_python_version)"
 pants_dir="$(bootstrap_pants "${python}")"
-create_pants_ini_if_missing
+if [[ ! -f 'pants.ini' ]]; then
+  autogen_pants_ini
+  exit 0
+fi
 
 
 # We set the env var no_proxy to '*', to work around an issue with urllib using non
