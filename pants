@@ -56,7 +56,9 @@ function get_pants_ini_config_value {
   valid_delimiters="[:=]"
   optional_space="[[:space:]]*"
   prefix="^${config_key}${optional_space}${valid_delimiters}${optional_space}"
-  sed -ne "/${prefix}/ s#${prefix}##p" pants.ini
+  if [[ -f "pants.ini" ]]; then
+    sed -ne "/${prefix}/ s#${prefix}##p" pants.ini
+  fi
 }
 
 function get_python_major_minor_version {
