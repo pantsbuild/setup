@@ -91,7 +91,7 @@ matrix:
           --skip-pantsd-tests
         - ./build-support/ci.py
           --pants-versions config
-          --python-versions unspecified 2.7 3.6
+          --python-versions unspecified 2.7 3.6 3.7
           --skip-pantsd-tests
         - ./build-support/test_pants_ini_autogen.py
 
