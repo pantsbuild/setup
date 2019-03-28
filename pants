@@ -52,6 +52,9 @@ function get_exe_path_or_die {
 }
 
 function get_pants_ini_config_value {
+  if [[ ! -f 'pants.ini' ]]; then
+    return 0
+  fi
   config_key="$1"
   valid_delimiters="[:=]"
   optional_space="[[:space:]]*"
