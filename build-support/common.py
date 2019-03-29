@@ -90,9 +90,11 @@ def write_config(config: configparser.ConfigParser) -> None:
 
 @contextmanager
 def temporarily_rewrite_config(updated_config: configparser.ConfigParser):
-  original_config = read_config()
+  with open(PANTS_INI, "r") as f:
+    original_config = f.read()
   write_config(updated_config)
   try:
     yield
   finally:
-    write_config(original_config)
+    with open(PANTS_INI, "w") as f:
+      f.write(original_config)
