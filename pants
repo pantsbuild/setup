@@ -73,8 +73,7 @@ EOF
 
 # The high-level flow:
 # 1.) Resolve the Python interpreter, first reading from the env var $PYTHON,
-#     then reading from pants.ini, then defaulting to python3.6, then python3.7,
-#     and finally python2.7.
+#     then reading from pants.ini, then defaulting to python3.6, and finally to python2.7.
 # 2.) Grab pants version from pants.ini or default to latest.
 # 3.) Check for a venv via a naming/path convention and execute if found.
 # 4.) Otherwise create venv and re-exec self.
@@ -92,9 +91,8 @@ function determine_pants_runtime_python_version {
     else
       python_bin_name="$(
         command -v "python3.6" \
-        || command -v "python3.7" \
         || command -v "python2.7" \
-        || die "No valid Python interpreter found. Pants requires Python 2.7, 3.6, or 3.7.")"
+        || die "No valid Python interpreter found. Pants requires Python 2.7 or 3.6.")"
     fi
   fi
   get_exe_path_or_die "${python_bin_name}"
