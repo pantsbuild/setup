@@ -46,12 +46,15 @@ function tempdir {
 
 function get_exe_path_or_die {
   exe="$1"
-  if ! which "${exe}"; then
+  if ! command -v "${exe}"; then
     die "Could not find ${exe}. Please ensure ${exe} is on your PATH."
   fi
 }
 
 function get_pants_ini_config_value {
+  if [[ ! -f 'pants.ini' ]]; then
+    return 0
+  fi
   config_key="$1"
   valid_delimiters="[:=]"
   optional_space="[[:space:]]*"
@@ -100,8 +103,8 @@ function bootstrap_venv {
       mkdir -p "${PANTS_BOOTSTRAP}"
       staging_dir=$(tempdir "${PANTS_BOOTSTRAP}")
       cd "${staging_dir}"
-      curl -LO https://pypi.io/packages/source/v/virtualenv/${VENV_TARBALL}
-      tar -xzf ${VENV_TARBALL}
+      curl -LO "https://pypi.io/packages/source/v/virtualenv/${VENV_TARBALL}"
+      tar -xzf "${VENV_TARBALL}"
       ln -s "${staging_dir}/${VENV_PACKAGE}" "${staging_dir}/latest"
       mv "${staging_dir}/latest" "${PANTS_BOOTSTRAP}/${VENV_PACKAGE}"
     ) 1>&2
@@ -138,7 +141,7 @@ function bootstrap_pants {
 }
 
 # Ensure we operate from the context of the ./pants buildroot.
-cd "$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd -P)"
+cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 python="$(determine_pants_runtime_python_version)"
 pants_dir="$(bootstrap_pants "${python}")"
 
@@ -147,6 +150,6 @@ pants_dir="$(bootstrap_pants "${python}")"
 # async-signal-safe syscalls after we fork a process that has already spawned threads.
 #
 # See https://blog.phusion.nl/2017/10/13/why-ruby-app-servers-break-on-macos-high-sierra-and-what-can-be-done-about-it/
-export no_proxy=*
+export no_proxy='*'
 
 exec "${pants_dir}/bin/python" "${pants_dir}/bin/pants" "$@"
