@@ -27,7 +27,7 @@ cache:
     - ${PYENV_ROOT}
 
 pyenv_setup: &pyenv_setup >
-  if [ ! -d "${PYENV_BIN}" ]; then
+  if [[ ! -d "${PYENV_BIN}" ]]; then
   rm -rf "${PYENV_ROOT}";
   git clone https://github.com/pyenv/pyenv "${PYENV_ROOT}";
   fi
