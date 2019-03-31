@@ -59,6 +59,9 @@ osx_setup: &osx_setup
       LDFLAGS="-L/usr/local/opt/openssl/lib"
       CPPFLAGS="-I/usr/local/opt/openssl/include"
   before_install:
+    # TODO: remove
+    - ls ${PYENV_ROOT}
+    - ls ${PYENV_BIN}
     - *pyenv_setup
     - *pyenv_install_py36
     - *pyenv_install_py37
