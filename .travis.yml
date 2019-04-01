@@ -8,6 +8,11 @@ env:
   global:
     - PYENV_PY36_VERSION=3.6.8
     - PYENV_PY37_VERSION=3.7.2
+    # NB: Linux shards use Pyenv to pre-install Python. We must not override
+    # PYENV_ROOT on those shards, or their Python will no longer work.
+    - PYENV_ROOT="${PYENV_ROOT:-${HOME}/.pants_pyenv}"
+    - PYENV_BIN="${PYENV_ROOT}/bin/pyenv"
+    - PATH="${PYENV_ROOT}/shims:${PATH}"
 
 script:
   # TODO: Once 1.15.0 is cut, consolidate this back into one entry. Currently the
@@ -19,6 +24,32 @@ script:
     --pants-versions config
     --python-versions unspecified 2.7 3.6 3.7
 
+cache:
+  directories:
+    - ${PYENV_ROOT}
+
+pyenv_setup: &pyenv_setup >
+  if [[ ! -x "${PYENV_BIN}" ]]; then
+    rm -rf "${PYENV_ROOT}"
+    git clone https://github.com/pyenv/pyenv "${PYENV_ROOT}"
+  fi
+
+pyenv_install_py36: &pyenv_install_py36 >
+  if [[ ! -d ${PYENV_ROOT}/versions/"${PYENV_PY36_VERSION}" ]]; then
+    "${PYENV_BIN}" install "${PYENV_PY36_VERSION}"
+  fi
+
+pyenv_install_py37: &pyenv_install_py37 >
+  if [[ ! -d ${PYENV_ROOT}/versions/"${PYENV_PY37_VERSION}" ]]; then
+    "${PYENV_BIN}" install "${PYENV_PY37_VERSION}"
+  fi
+
+pyenv_global_py36: &pyenv_global_py36 >
+  "${PYENV_BIN}" global "${PYENV_PY36_VERSION}"
+
+pyenv_global_py36_py37: &pyenv_global_py36_py37 >
+  "${PYENV_BIN}" global "${PYENV_PY36_VERSION}" "${PYENV_PY37_VERSION}"
+
 osx_setup: &osx_setup
   os: osx
   language: generic
@@ -27,24 +58,17 @@ osx_setup: &osx_setup
       packages:
         - openssl
   env:
-    - &env_pyenv >
-      PYENV_ROOT="${HOME}/.pants_pyenv"
-      PYENV_BIN="${PYENV_ROOT}/bin/pyenv"
-      PATH="${PYENV_ROOT}/shims:${PATH}"
-    - >
-      # These flags are necessary to get OpenSSL working. See
+    - &env_osx_openssl >
+      # These flags are necessary to get OpenSSL working on OSX. See
       # https://github.com/pyenv/pyenv/wiki/Common-build-problems#error-the-python-ssl-extension-was-not-compiled-missing-the-openssl-lib.
       PATH="/usr/local/opt/openssl/bin:$PATH"
       LDFLAGS="-L/usr/local/opt/openssl/lib"
       CPPFLAGS="-I/usr/local/opt/openssl/include"
   before_install:
-    - &pyenv_install_py36 >
-      if [ ! -d "${PYENV_ROOT}" ]; then git clone https://github.com/pyenv/pyenv ${PYENV_ROOT}; fi
-      && "${PYENV_BIN}" install "${PYENV_PY36_VERSION}"
-    - &pyenv_install_py37 >
-      if [ ! -d "${PYENV_ROOT}" ]; then git clone https://github.com/pyenv/pyenv ${PYENV_ROOT}; fi
-      && "${PYENV_BIN}" install "${PYENV_PY37_VERSION}"
-    - ${PYENV_BIN} global "${PYENV_PY36_VERSION}" "${PYENV_PY37_VERSION}"
+    - *pyenv_setup
+    - *pyenv_install_py36
+    - *pyenv_install_py37
+    - *pyenv_global_py36_py37
   before_script:
     # Override file handler and thread limits
     - ulimit -c unlimited
@@ -76,10 +100,16 @@ matrix:
     - name: "OSX 10.11 - El Capitan"
       <<: *osx_setup
       osx_image: xcode8.0
+      env:
+        - *env_osx_openssl
+        - CACHE_NAME="osx.el_capitan"
 
     - name: "OSX 10.12 - Sierra"
       <<: *osx_setup
       osx_image: xcode9.2
+      env:
+        - *env_osx_openssl
+        - CACHE_NAME="osx.sierra"
       # OSX 10.12 Sierra frequently flakes when running with Pantsd. Restore the original
       # tests once https://github.com/pantsbuild/pants/issues/6714 and
       # https://github.com/pantsbuild/pants/issues/7323 are resolved.
@@ -97,16 +127,20 @@ matrix:
     - name: "OSX 10.13 - High Sierra"
       <<: *osx_setup
       osx_image: xcode9.4
+      env:
+        - *env_osx_openssl
+        - CACHE_NAME="osx.high_sierra"
 
     - name: "Ubuntu 12.04 - Precise"
       <<: *linux_setup
       dist: precise
       sudo: required
       env:
-        - *env_pyenv
+        - CACHE_NAME="linux.precise"
       before_install:
+        - *pyenv_setup
         - *pyenv_install_py36
-        - ${PYENV_BIN} global "${PYENV_PY36_VERSION}"
+        - *pyenv_global_py36
       script:
         - ./build-support/ci.py
           --pants-versions unspecified
@@ -118,6 +152,8 @@ matrix:
     - name: "Ubuntu 14.04 - Trusty"
       <<: *linux_setup
       dist: trusty
+      env:
+        - CACHE_NAME="linux.trusty"
       before_install:
         - pyenv global 2.7.14 3.6.3
       script:
@@ -132,5 +168,7 @@ matrix:
     - name: "Ubuntu 16.04 - Xenial"
       <<: *linux_setup
       dist: xenial
+      env:
+        - CACHE_NAME="linux.xenial"
       before_install:
-      - pyenv global 2.7.15 3.6.7 3.7.1
+        - pyenv global 2.7.15 3.6.7 3.7.1
