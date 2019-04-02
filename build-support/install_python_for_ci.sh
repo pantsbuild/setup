@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -euox pipefail
 
 # Install the requested Python version(s) through Pyenv.
 
@@ -21,6 +21,8 @@ PYENV_BIN="${PYENV_ROOT}/bin/pyenv"
 if [[ ! -x "${PYENV_BIN}" ]]; then
   rm -rf "${PYENV_ROOT}"
   git clone https://github.com/pyenv/pyenv "${PYENV_ROOT}"
+else
+  ls "${PYENV_ROOT}"
 fi
 
 for python_version in "${PYTHON_VERSIONS[@]}"; do
