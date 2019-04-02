@@ -15,14 +15,12 @@ env:
     - PATH="${PYENV_ROOT}/shims:${PATH}"
 
 script:
-  # TODO: Once 1.15.0 is cut, consolidate this back into one entry. Currently the
-  # python version cannot be specified when the pants_version is unspecified.
   - ./build-support/ci.py
-    --pants-versions unspecified
+    --pants-versions 1.14.0
     --python-versions unspecified
   - ./build-support/ci.py
-    --pants-versions config
-    --python-versions unspecified 2.7 3.6 3.7
+    --pants-versions unspecified 1.15.0
+    --python-versions unspecified 2.7 3.6
 
 cache:
   directories:
@@ -115,12 +113,12 @@ matrix:
       # https://github.com/pantsbuild/pants/issues/7323 are resolved.
       script:
         - ./build-support/ci.py
-          --pants-versions unspecified
+          --pants-versions 1.14.0
           --python-versions unspecified
           --skip-pantsd-tests
         - ./build-support/ci.py
-          --pants-versions config
-          --python-versions unspecified 2.7 3.6 3.7
+          --pants-versions unspecified 1.15.0
+          --python-versions unspecified 2.7 3.6
           --skip-pantsd-tests
 
 
@@ -141,13 +139,6 @@ matrix:
         - *pyenv_setup
         - *pyenv_install_py36
         - *pyenv_global_py36
-      script:
-        - ./build-support/ci.py
-          --pants-versions unspecified
-          --python-versions unspecified
-        - ./build-support/ci.py
-          --pants-versions config
-          --python-versions unspecified 2.7 3.6
 
     - name: "Ubuntu 14.04 - Trusty"
       <<: *linux_setup
@@ -156,14 +147,6 @@ matrix:
         - CACHE_NAME="linux.trusty"
       before_install:
         - pyenv global 2.7.14 3.6.3
-      script:
-        - ./build-support/ci.py
-          --pants-versions unspecified
-          --python-versions unspecified
-        - ./build-support/ci.py
-          --pants-versions config
-          --python-versions unspecified 2.7 3.6
-
 
     - name: "Ubuntu 16.04 - Xenial"
       <<: *linux_setup
