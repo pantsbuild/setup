@@ -118,7 +118,7 @@ function determine_default_python_exe {
   for version in "${supported_python_versions[@]}"; do
     command -v "python${version}" && return 0
   done
-  die "No valid Python interpreter found. Pants requires Python ${supported_message}."
+  die "No valid Python interpreter found. For this Pants version, Pants requires Python ${supported_message}."
 }
 
 function determine_python_exe {
