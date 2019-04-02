@@ -90,7 +90,7 @@ function determine_default_python_exe {
     supported_python_versions=('3.6' '2.7')
     supported_message='2.7 or 3.6'
   else
-    pants_minor_version="$(echo ${pants_version} | cut -d '.' -f2)"
+    pants_minor_version="$(echo "${pants_version}" | cut -d '.' -f2)"
     if [[ "${pants_minor_version}" -ge 17 ]]; then
       supported_python_versions=('3.6' '3.7' '3.8' '3')
       supported_message='3.6+'
@@ -108,7 +108,7 @@ function determine_default_python_exe {
   for version in "${supported_python_versions[@]}"; do
     command -v "python${version}" && return 0
   done
-  die "No valid valid Python interpreter found. Pants requires Python ${supported_message}."
+  die "No valid Python interpreter found. Pants requires Python ${supported_message}."
 }
 
 function determine_python_exe {
