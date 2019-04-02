@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euox pipefail
+set -euo pipefail
 
 # Install the requested Python version(s) through Pyenv.
 
@@ -10,7 +10,7 @@ set -euox pipefail
 
 source build-support/common.sh
 
-PYTHON_VERSIONS="$@"
+PYTHON_VERSIONS=("$@")
 
 if [[ -z "${PYENV_ROOT:+''}" ]]; then
   die "Caller of the script must set the env var PYENV_ROOT."
@@ -21,8 +21,6 @@ PYENV_BIN="${PYENV_ROOT}/bin/pyenv"
 if [[ ! -x "${PYENV_BIN}" ]]; then
   rm -rf "${PYENV_ROOT}"
   git clone https://github.com/pyenv/pyenv "${PYENV_ROOT}"
-else
-  ls "${PYENV_ROOT}"
 fi
 
 for python_version in "${PYTHON_VERSIONS[@]}"; do
