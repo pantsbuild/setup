@@ -73,7 +73,8 @@ EOF
 
 # The high-level flow:
 # 1.) Resolve the Python interpreter, first reading from the env var $PYTHON,
-#     then reading from pants.ini, then defaulting to python3.6, and finally to python2.7.
+#     then reading from pants.ini, then determining the default based off of
+#     which Python versions the current `pants_version` supports.
 # 2.) Grab pants version from pants.ini or default to latest.
 # 3.) Check for a venv via a naming/path convention and execute if found.
 # 4.) Otherwise create venv and re-exec self.
@@ -81,7 +82,36 @@ EOF
 # After that pants itself will handle making sure any requested plugins
 # are installed and up to date.
 
-function determine_pants_runtime_python_version {
+function determine_default_python_exe {
+  pants_version="$(get_pants_ini_config_value 'pants_version')"
+  # If `pants_version` not pinned in `pants.ini`, default to what the most
+  # recent stable release supports.
+  if [[ -z "${pants_version}" ]]; then
+    supported_python_versions=('3.6' '2.7')
+    supported_message='2.7 or 3.6'
+  else
+    pants_minor_version="$(echo ${pants_version} | cut -d '.' -f2)"
+    if [[ "${pants_minor_version}" -ge 17 ]]; then
+      supported_python_versions=('3.6' '3.7' '3.8' '3')
+      supported_message='3.6+'
+    elif [[ "${pants_minor_version}" -eq 16 ]]; then
+      supported_python_versions=('3.6' '3.7' '2.7')
+      supported_message='2.7, 3.6, or 3.7'
+    elif [[ "${pants_minor_version}" -eq 15 ]]; then
+      supported_python_versions=('3.6' '2.7')
+      supported_message='2.7 or 3.6'
+    else
+      supported_python_versions=('2.7')
+      supported_message='2.7'
+    fi
+  fi
+  for version in "${supported_python_versions[@]}"; do
+    command -v "python${version}" && return 0
+  done
+  die "No valid valid Python interpreter found. Pants requires Python ${supported_message}."
+}
+
+function determine_python_exe {
   if [[ "${PYTHON_BIN_NAME}" != 'unspecified' ]]; then
     python_bin_name="${PYTHON_BIN_NAME}"
   else
@@ -89,10 +119,7 @@ function determine_pants_runtime_python_version {
     if [[ -n "${interpreter_version}" ]]; then
       python_bin_name="python${interpreter_version}"
     else
-      python_bin_name="$(
-        command -v "python3.6" \
-        || command -v "python2.7" \
-        || die "No valid Python interpreter found. Pants requires Python 2.7 or 3.6.")"
+      python_bin_name="$(determine_default_python_exe)"
     fi
   fi
   get_exe_path_or_die "${python_bin_name}"
@@ -146,7 +173,7 @@ function bootstrap_pants {
 
 # Ensure we operate from the context of the ./pants buildroot.
 cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
-python="$(determine_pants_runtime_python_version)"
+python="$(determine_python_exe)"
 pants_dir="$(bootstrap_pants "${python}")"
 
 
