@@ -17,6 +17,16 @@ from common import (CONFIG_GLOBAL_SECTION, banner, die, read_config,
 class PantsVersion(Enum):
   unspecified = "unspecified"
   config = "config"
+  # NB: we test all of the below Pants versions because they each represent
+  # a boundary in our Python 3 migration, as follows:
+  # * <= 1.14.0: Python 2.7
+  # * == 1.15.0: Python 2.7 or 3.6
+  # * == 1.16.0: Python 2.7, 3.6, or 3.7
+  # * >= 1.17.0: Python 3.6 or 3.7
+  one_fourteen = "1.14.0"
+  one_fifteen = "1.15.0"
+  one_sixteen = "1.16.0"
+  one_seventeen = "1.17.0"
 
   def __str__(self):
       return self.value
@@ -112,6 +122,9 @@ def setup_pants_version(test_pants_version: PantsVersion):
       die(f"You requested to use `{config_entry}` from pants.ini, but pants.ini does not include `{config_entry}`!")
     current_pants_version = updated_config[CONFIG_GLOBAL_SECTION][config_entry]
     banner(f"Using the `{config_entry}` set in pants.ini: `{current_pants_version}`.")
+  else:
+    updated_config[CONFIG_GLOBAL_SECTION][config_entry] = test_pants_version.value
+    banner(f"Temporarily rewriting `{config_entry}` to `{test_pants_version}`.")
   with temporarily_rewrite_config(updated_config):
     yield
   banner(f"Restoring original `{config_entry}` value in pants.ini.")
