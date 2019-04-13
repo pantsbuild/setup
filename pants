@@ -93,8 +93,8 @@ function determine_default_python_exe {
     pants_major_version="$(echo "${pants_version}" | cut -d '.' -f1)"
     pants_minor_version="$(echo "${pants_version}" | cut -d '.' -f2)"
     if [[ "${pants_major_version}" -eq 1 && "${pants_minor_version}" -le 14 ]]; then
-      supported_python_versions=('3.6' '2.7')
-      supported_message='2.7 or 3.6'
+      supported_python_versions=('2.7')
+      supported_message='2.7'
     elif [[ "${pants_major_version}" -eq 1 && "${pants_minor_version}" -eq 15 ]]; then
       supported_python_versions=('3.6' '2.7')
       supported_message='2.7 or 3.6'
