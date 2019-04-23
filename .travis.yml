@@ -13,13 +13,36 @@ env:
     - PYENV_ROOT="${PYENV_ROOT:-${HOME}/.pants_pyenv}"
     - PATH="${PYENV_ROOT}/shims:${PATH}"
 
+test_1_14: &test_1_14 >
+  ./build-support/ci.py
+  --pants-versions 1.14.0
+  --python-versions unspecified
+
+test_1_15: &test_1_15 >
+  ./build-support/ci.py
+  --pants-versions 1.15.0
+  --python-versions unspecified 2.7 3.6
+
+test_1_16: &test_1_16 >
+  ./build-support/ci.py
+  --pants-versions config
+  --python-versions unspecified 2.7 3.6 3.7
+
+test_1_16_without_py37: &test_1_16_without_py37 >
+  ./build-support/ci.py
+  --pants-versions config
+  --python-versions unspecified 2.7 3.6
+
+test_unspecified: &test_unspecified >
+  ./build-support/ci.py
+  --pants-versions unspecified
+  --python-versions unspecified 2.7 3.6
+
 script:
-  - ./build-support/ci.py
-    --pants-versions 1.14.0
-    --python-versions unspecified
-  - ./build-support/ci.py
-    --pants-versions unspecified 1.15.0
-    --python-versions unspecified 2.7 3.6
+  - *test_1_14
+  - *test_1_15
+  - *test_1_16
+  - *test_unspecified
 
 cache:
   directories:
@@ -82,19 +105,10 @@ matrix:
       env:
         - *env_osx_openssl
         - CACHE_NAME="osx.sierra"
-      # OSX 10.12 Sierra frequently flakes when running with Pantsd. Restore the original
-      # tests once https://github.com/pantsbuild/pants/issues/6714 and
-      # https://github.com/pantsbuild/pants/issues/7323 are resolved.
-      script:
-        - ./build-support/ci.py
-          --pants-versions 1.14.0
-          --python-versions unspecified
-          --skip-pantsd-tests
-        - ./build-support/ci.py
-          --pants-versions unspecified 1.15.0
-          --python-versions unspecified 2.7 3.6
-          --skip-pantsd-tests
-
+        # OSX 10.12 Sierra frequently flakes when running with Pantsd. Restore the
+        # original tests once https://github.com/pantsbuild/pants/issues/6714 and
+        # https://github.com/pantsbuild/pants/issues/7323 are resolved.
+        - SKIP_PANTSD_TESTS=true
 
     - name: "OSX 10.13 - High Sierra"
       <<: *osx_setup
@@ -111,6 +125,11 @@ matrix:
         - CACHE_NAME="linux.precise"
       before_install:
         - ./build-support/install_python_for_ci.sh "${PYENV_PY36_VERSION}"
+      script:
+        - *test_1_14
+        - *test_1_15
+        - *test_1_16_without_py37
+        - *test_unspecified
 
     - name: "Ubuntu 14.04 - Trusty"
       <<: *linux_setup
@@ -119,6 +138,11 @@ matrix:
         - CACHE_NAME="linux.trusty"
       before_install:
         - pyenv global 2.7.14 3.6.3
+      script:
+        - *test_1_14
+        - *test_1_15
+        - *test_1_16_without_py37
+        - *test_unspecified
 
     - name: "Ubuntu 16.04 - Xenial"
       <<: *linux_setup

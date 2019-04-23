@@ -45,11 +45,12 @@ class PythonVersion(Enum):
 def main() -> None:
   args = create_parser().parse_args()
   envs = itertools.product(args.pants_versions, args.python_versions)
+  skip_pantsd_tests = args.skip_pantsd_tests or "SKIP_PANTSD_TESTS" in os.environ
   for pants_version, python_version in envs:
     run_tests_with_env(
       pants_version=pants_version,
       python_version=python_version,
-      skip_pantsd_tests=args.skip_pantsd_tests
+      skip_pantsd_tests=skip_pantsd_tests
     )
 
 
