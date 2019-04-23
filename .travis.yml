@@ -13,18 +13,36 @@ env:
     - PYENV_ROOT="${PYENV_ROOT:-${HOME}/.pants_pyenv}"
     - PATH="${PYENV_ROOT}/shims:${PATH}"
 
+test_1_14: &test_1_14 >
+  ./build-support/ci.py
+  --pants-versions 1.14.0
+  --python-versions unspecified
+
+test_1_15: &test_1_15 >
+  ./build-support/ci.py
+  --pants-versions 1.15.0
+  --python-versions unspecified 2.7 3.6
+
+test_1_16: &test_1_16 >
+  ./build-support/ci.py
+  --pants-versions config
+  --python-versions unspecified 2.7 3.6 3.7
+
+test_1_16_without_py37: &test_1_16_without_py37 >
+  ./build-support/ci.py
+  --pants-versions config
+  --python-versions unspecified 2.7 3.6
+
+test_unspecified: &test_unspecified >
+  ./build-support/ci.py
+  --pants-versions unspecified
+  --python-versions unspecified 2.7 3.6
+
 script:
-  - &test_1_14 >
-    ./build-support/ci.py
-    --pants-versions 1.14.0
-    --python-versions unspecified
-  - &test_1_15_and_unspecified >
-    ./build-support/ci.py
-    --pants-versions unspecified 1.15.0
-    --python-versions unspecified 2.7 3.6
-  - ./build-support/ci.py
-    --pants-versions config
-    --python-versions unspecified 2.7 3.6 3.7
+  - *test_1_14
+  - *test_1_15
+  - *test_1_16
+  - *test_unspecified
 
 cache:
   directories:
@@ -122,7 +140,9 @@ matrix:
         - ./build-support/install_python_for_ci.sh "${PYENV_PY36_VERSION}"
       script:
         - *test_1_14
-        - *test_1_15_and_unspecified
+        - *test_1_15
+        - *test_1_16_without_py37
+        - *test_unspecified
 
     - name: "Ubuntu 14.04 - Trusty"
       <<: *linux_setup
@@ -133,7 +153,9 @@ matrix:
         - pyenv global 2.7.14 3.6.3
       script:
         - *test_1_14
-        - *test_1_15_and_unspecified
+        - *test_1_15
+        - *test_1_16_without_py37
+        - *test_unspecified
 
     - name: "Ubuntu 16.04 - Xenial"
       <<: *linux_setup
