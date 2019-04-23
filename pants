@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# Copyright 2015 Pants project contributors (see CONTRIBUTORS.md).
+# Copyright 2019 Pants project contributors (see CONTRIBUTORS.md).
 # Licensed under the Apache License, Version 2.0 (see LICENSE).
 
 # =============================== NOTE ===============================
-# This pants bootstrap script comes from the pantsbuild/setup
+# This ./pants bootstrap script comes from the pantsbuild/setup
 # project and is intended to be checked into your code repository so
 # that any developer can check out your code and be building it with
-# pants with no prior setup needed.
+# Pants with no prior setup needed.
 #
-# You can learn more here: https://pantsbuild.github.io/setup
+# You can learn more here: https://www.pantsbuild.org/install.html
 # ====================================================================
 
 set -eou pipefail
@@ -73,12 +73,14 @@ EOF
 
 # The high-level flow:
 # 1.) Resolve the Pants version from pants.ini or from the latest stable
-#     release to PyPi.
+#     release to PyPi, so that we know what to name the venv folder and which
+#     Python versions we can use.
 # 2.) Resolve the Python interpreter, first reading from the env var $PYTHON,
 #     then reading from pants.ini, then determining the default based off of
 #     which Python versions the Pants version supports.
-# 3.) Check for a venv via a naming/path convention and execute if found.
-# 4.) Otherwise create venv and re-exec self.
+# 3.) Check if the venv (virtual environment) already exists via a naming/path convention,
+#     and create the venv if not found.
+# 4.) Execute Pants with the resolved Python interpreter and venv.
 #
 # After that, Pants itself will handle making sure any requested plugins
 # are installed and up to date.
