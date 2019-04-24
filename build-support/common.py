@@ -87,19 +87,20 @@ def copy_pants_into_tmpdir():
 
 
 @contextmanager
-def point_pants_home_to_dir(dir: str):
-  original_env = os.environ.copy()
-  os.environ["PANTS_HOME"] = dir
-  try:
-    yield
-  finally:
-    os.environ = original_env
+def set_pants_cache_to_tmpdir():
+  with tempfile.TemporaryDirectory() as tmpdir:
+    original_env = os.environ.copy()
+    os.environ["PANTS_HOME"] = tmpdir
+    try:
+      yield
+    finally:
+      os.environ = original_env
 
 
 @contextmanager
 def setup_pants_in_tmpdir():
-  with copy_pants_into_tmpdir() as tmpdir, point_pants_home_to_dir(tmpdir):
-    yield tmpdir
+  with set_pants_cache_to_tmpdir(), copy_pants_into_tmpdir() as buildroot_tmpdir:
+    yield buildroot_tmpdir
 
 # --------------------------------------------------------
 # Rewrite pants.ini
