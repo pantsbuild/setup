@@ -33,16 +33,14 @@ test_1_16_without_py37: &test_1_16_without_py37 >
   --pants-versions config
   --python-versions unspecified 2.7 3.6
 
-test_unspecified: &test_unspecified >
-  ./build-support/ci.py
-  --pants-versions unspecified
-  --python-versions unspecified 2.7 3.6
+test_first_time_install: &test_first_time_install >
+  ./build-support/test_first_time_install.py
 
 script:
   - *test_1_14
   - *test_1_15
   - *test_1_16
-  - *test_unspecified
+  - *test_first_time_install
 
 cache:
   directories:
@@ -129,7 +127,7 @@ matrix:
         - *test_1_14
         - *test_1_15
         - *test_1_16_without_py37
-        - *test_unspecified
+        - *test_first_time_install
 
     - name: "Ubuntu 14.04 - Trusty"
       <<: *linux_setup
@@ -142,7 +140,7 @@ matrix:
         - *test_1_14
         - *test_1_15
         - *test_1_16_without_py37
-        - *test_unspecified
+        - *test_first_time_install
 
     - name: "Ubuntu 16.04 - Xenial"
       <<: *linux_setup
