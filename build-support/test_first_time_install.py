@@ -30,12 +30,11 @@ class TestFirstTimeInstall(unittest.TestCase):
       )
       # Pip will resolve the most recent stable release, which will be the output of
       # `./pants --version`.
-      downloaded_version = completed_process.stdout[-2]
-      virtual_env_created_log_entry = next(
-        line for line in completed_process.stderr.split("\n")
-        if re.search(r"virtual environment successfully created at .*/bootstrap/.*_py", line)
-      )
-      self.assertIn(downloaded_version, virtual_env_created_log_entry)
+      downloaded_version = completed_process.stdout.strip()
+      self.assertTrue(re.search(
+        fr"virtual environment successfully created at .*/bootstrap.*/{downloaded_version}_py",
+        completed_process.stderr, flags=re.MULTILINE
+      ))
 
   def test_only_bootstraps_the_first_time(self) -> None:
     with setup_pants_in_tmpdir() as tmpdir:
