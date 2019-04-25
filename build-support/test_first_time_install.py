@@ -9,6 +9,7 @@ Note that this does not test the result of `./pants generate-pants-ini`, because
 is already tested by Pants at
 https://github.com/pantsbuild/pants/blob/master/tests/python/pants_test/core_tasks/test_generate_pants_ini.py."""
 
+import re
 import subprocess
 import unittest
 
@@ -32,7 +33,7 @@ class TestFirstTimeInstall(unittest.TestCase):
       downloaded_version = completed_process.stdout[-2]
       virtual_env_created_log_entry = next(
         line for line in completed_process.stderr.split("\n")
-        if "created" in line and "bootstrap" in line
+        if re.search(r"virtual environment successfully created at .*/bootstrap/.*_py", line)
       )
       self.assertIn(downloaded_version, virtual_env_created_log_entry)
 
