@@ -15,7 +15,6 @@ from common import (CONFIG_GLOBAL_SECTION, banner, die, read_config,
 
 
 class PantsVersion(Enum):
-  unspecified = "unspecified"
   config = "config"
   # NB: we test all of the below Pants versions because they each represent
   # a boundary in our Python 3 migration, as follows:
@@ -110,15 +109,10 @@ def run_tests(*, skip_pantsd_tests: bool) -> None:
 
 @contextmanager
 def setup_pants_version(test_pants_version: PantsVersion):
-  """Modify pants.ini to allow the pants version to be unspecified or keep what was originally there."""
+  """Modify pants.ini to allow the pants version to be a specified version or to keep what was originally there."""
   updated_config = read_config()
   config_entry = "pants_version"
-  if test_pants_version == PantsVersion.unspecified:
-    updated_config.remove_option(CONFIG_GLOBAL_SECTION, config_entry)
-    # NB: We also remove plugins as they refer to the pants_version.
-    updated_config.remove_option(CONFIG_GLOBAL_SECTION, "plugins")
-    banner(f"Temporarily removing `{config_entry}` from pants.ini.")
-  elif test_pants_version == PantsVersion.config:
+  if test_pants_version == PantsVersion.config:
     if config_entry not in updated_config[CONFIG_GLOBAL_SECTION]:
       die(f"You requested to use `{config_entry}` from pants.ini, but pants.ini does not include `{config_entry}`!")
     current_pants_version = updated_config[CONFIG_GLOBAL_SECTION][config_entry]
