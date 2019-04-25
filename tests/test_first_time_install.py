@@ -39,7 +39,6 @@ class TestFirstTimeInstall(TestBase):
       first_run_pants_script_logging = subprocess.run(
         ["./pants", "--version"],
         check=True,
-        stdout=subprocess.DEVNULL,
         stderr=subprocess.PIPE,
         encoding="utf-8",
         cwd=tmpdir
@@ -49,7 +48,6 @@ class TestFirstTimeInstall(TestBase):
       second_run_pants_script_logging = subprocess.run(
         ["./pants", "--version"],
         check=True,
-        stdout=subprocess.DEVNULL,
         stderr=subprocess.PIPE,
         encoding="utf-8",
         cwd=tmpdir
