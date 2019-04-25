@@ -29,8 +29,7 @@ class TestBase(TestCase):
       try:
         yield
       finally:
-        os.environ.clear()
-        os.environ.update(original_env)
+        os.environ = original_env
 
   @contextmanager
   def setup_pants_in_tmpdir(self) -> Iterator[str]:
