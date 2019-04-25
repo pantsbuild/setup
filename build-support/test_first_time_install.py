@@ -46,6 +46,7 @@ class TestFirstTimeInstall(unittest.TestCase):
         encoding="utf-8",
         cwd=tmpdir
       ).stderr
+      # Check that stderr is truthy, i.e. there is output.
       self.assertTrue(first_run_pants_script_logging)
       second_run_pants_script_logging = subprocess.run(
         ["./pants", "--version"],
@@ -55,6 +56,7 @@ class TestFirstTimeInstall(unittest.TestCase):
         encoding="utf-8",
         cwd=tmpdir
       ).stderr
+      # Check that stderr is falsy, i.e. there is no output.
       self.assertFalse(second_run_pants_script_logging)
 
 if __name__ == "__main__":
