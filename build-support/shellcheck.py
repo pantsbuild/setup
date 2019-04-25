@@ -4,6 +4,7 @@
 
 import shutil
 import subprocess
+from glob import glob
 
 from common import die, green
 
@@ -20,7 +21,8 @@ def ensure_shellcheck_installed() -> None:
 
 
 def run_shellcheck() -> None:
-  command = ["shellcheck", "--shell=bash", "./pants"]
+  build_support_scripts = glob("build-support/**/*.sh", recursive=True)
+  command = ["shellcheck", "--shell=bash", "./pants"] + build_support_scripts
   try:
     subprocess.run(command, check=True)
   except subprocess.CalledProcessError:
