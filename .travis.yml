@@ -107,6 +107,10 @@ matrix:
         # original tests once https://github.com/pantsbuild/pants/issues/6714 and
         # https://github.com/pantsbuild/pants/issues/7323 are resolved.
         - SKIP_PANTSD_TESTS=true
+        - PANTS_PYTHON_SETUP_INTERPRETER_SEARCH_PATHS='["${PYENV_ROOT}/versions/${PYENV_PY36_VERSION}/bin"]'
+      # DEBUG
+      script:
+        - *test_first_time_install
 
     - name: "OSX 10.13 - High Sierra"
       <<: *osx_setup
