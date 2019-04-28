@@ -21,7 +21,7 @@ def ensure_shellcheck_installed() -> None:
 
 
 def run_shellcheck() -> None:
-  targets = glob("**/*.sh", recursive=True)
+  targets = glob("./**/*.sh", recursive=True) + ["./pants"]
   command = ["shellcheck", "--shell=bash"] + targets
   try:
     subprocess.run(command, check=True)
