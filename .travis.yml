@@ -78,27 +78,29 @@ linux_setup: &linux_setup
 
 matrix:
   include:
-    # - name: "Lint ./pants script"
-    #   <<: *linux_setup
-    #   dist: xenial
-    #   before_install:
-    #     - pyenv global 3.6.7
-    #   addons:
-    #     apt:
-    #       packages:
-    #         - shellcheck
-    #   script:
-    #     - ./build-support/shellcheck.py
+    - name: "Lint ./pants script"
+      <<: *linux_setup
+      dist: xenial
+      before_install:
+        - pyenv global 3.6.7
+      addons:
+        apt:
+          packages:
+            - shellcheck
+      script:
+        - ./build-support/shellcheck.py
 
-    # - name: "OSX 10.11 - El Capitan"
-    #   <<: *osx_setup
-    #   osx_image: xcode8.0
-    #   env:
-    #     - *env_osx_openssl
-    #     - CACHE_NAME="osx.el_capitan"
+    - name: "OSX 10.11 - El Capitan"
+      <<: *osx_setup
+      osx_image: xcode8.0
+      env:
+        - *env_osx_openssl
+        - CACHE_NAME="osx.el_capitan"
 
     - name: "OSX 10.12 - Sierra"
       <<: *osx_setup
+      # We cannot use xcode9.2 due to an issue with Pants not being able to resolve interpreters
+      # when selecting an interpreter. See https://github.com/pantsbuild/pants/issues/7636.
       osx_image: xcode9.1
       env:
         - *env_osx_openssl
@@ -107,47 +109,45 @@ matrix:
         # original tests once https://github.com/pantsbuild/pants/issues/6714 and
         # https://github.com/pantsbuild/pants/issues/7323 are resolved.
         - SKIP_PANTSD_TESTS=true
+
+    - name: "OSX 10.13 - High Sierra"
+      <<: *osx_setup
+      osx_image: xcode9.4
+      env:
+        - *env_osx_openssl
+        - CACHE_NAME="osx.high_sierra"
+
+    - name: "Ubuntu 12.04 - Precise"
+      <<: *linux_setup
+      dist: precise
+      sudo: required
+      env:
+        - CACHE_NAME="linux.precise"
+      before_install:
+        - ./build-support/install_python_for_ci.sh "${PYENV_PY36_VERSION}"
       script:
+        - *test_1_14
+        - *test_1_15
+        - *test_1_16_without_py37
         - *test_first_time_install
 
-    # - name: "OSX 10.13 - High Sierra"
-    #   <<: *osx_setup
-    #   osx_image: xcode9.4
-    #   env:
-    #     - *env_osx_openssl
-    #     - CACHE_NAME="osx.high_sierra"
+    - name: "Ubuntu 14.04 - Trusty"
+      <<: *linux_setup
+      dist: trusty
+      env:
+        - CACHE_NAME="linux.trusty"
+      before_install:
+        - pyenv global 2.7.14 3.6.3
+      script:
+        - *test_1_14
+        - *test_1_15
+        - *test_1_16_without_py37
+        - *test_first_time_install
 
-    # - name: "Ubuntu 12.04 - Precise"
-    #   <<: *linux_setup
-    #   dist: precise
-    #   sudo: required
-    #   env:
-    #     - CACHE_NAME="linux.precise"
-    #   before_install:
-    #     - ./build-support/install_python_for_ci.sh "${PYENV_PY36_VERSION}"
-    #   script:
-    #     - *test_1_14
-    #     - *test_1_15
-    #     - *test_1_16_without_py37
-    #     - *test_first_time_install
-
-    # - name: "Ubuntu 14.04 - Trusty"
-    #   <<: *linux_setup
-    #   dist: trusty
-    #   env:
-    #     - CACHE_NAME="linux.trusty"
-    #   before_install:
-    #     - pyenv global 2.7.14 3.6.3
-    #   script:
-    #     - *test_1_14
-    #     - *test_1_15
-    #     - *test_1_16_without_py37
-    #     - *test_first_time_install
-
-    # - name: "Ubuntu 16.04 - Xenial"
-    #   <<: *linux_setup
-    #   dist: xenial
-    #   env:
-    #     - CACHE_NAME="linux.xenial"
-    #   before_install:
-    #     - pyenv global 2.7.15 3.6.7 3.7.1
+    - name: "Ubuntu 16.04 - Xenial"
+      <<: *linux_setup
+      dist: xenial
+      env:
+        - CACHE_NAME="linux.xenial"
+      before_install:
+        - pyenv global 2.7.15 3.6.7 3.7.1
