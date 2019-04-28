@@ -99,7 +99,7 @@ matrix:
 
     - name: "OSX 10.12 - Sierra"
       <<: *osx_setup
-      osx_image: xcode8.3
+      osx_image: xcode9
       env:
         - *env_osx_openssl
         - CACHE_NAME="osx.sierra"
