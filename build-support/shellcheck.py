@@ -21,8 +21,8 @@ def ensure_shellcheck_installed() -> None:
 
 
 def run_shellcheck() -> None:
-  build_support_scripts = glob("build-support/**/*.sh", recursive=True)
-  command = ["shellcheck", "--shell=bash", "./pants"] + build_support_scripts
+  targets = glob("**/*.sh", recursive=True)
+  command = ["shellcheck", "--shell=bash"] + targets
   try:
     subprocess.run(command, check=True)
   except subprocess.CalledProcessError:
