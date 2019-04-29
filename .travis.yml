@@ -11,7 +11,8 @@ env:
     # NB: Linux shards use Pyenv to pre-install Python. We must not override
     # PYENV_ROOT on those shards, or their Python will no longer work.
     - PYENV_ROOT="${PYENV_ROOT:-${HOME}/.pants_pyenv}"
-    - PATH="${PYENV_ROOT}/shims:${PATH}"
+    - PATH="${PYENV_ROOT}/versions/${PYENV_PY36_VERSION}/bin:${PATH}"
+    - PATH="${PYENV_ROOT}/versions/${PYENV_PY37_VERSION}/bin:${PATH}"
 
 test_1_14: &test_1_14 >
   ./build-support/ci.py
