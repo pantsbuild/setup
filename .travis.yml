@@ -14,7 +14,7 @@ env:
     - PATH="${PYENV_ROOT}/shims:${PATH}"
 
 test_first_time_install: &test_first_time_install >
-  PEX_VERBOSE=9 ./pants test tests:first_time_install
+  PEX_VERBOSE=9 ./pants -ldebug test tests:first_time_install
 
 script:
   - *test_first_time_install
