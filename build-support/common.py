@@ -8,7 +8,7 @@ import time
 from contextlib import contextmanager
 from enum import Enum
 from pathlib import Path
-from typing import Tuple
+from typing import Iterator, Tuple
 
 # --------------------------------------------------------
 # Logging utils
@@ -43,7 +43,7 @@ def elapsed_time() -> Tuple[int, int]:
 
 
 @contextmanager
-def travis_section(slug: str, message: str):
+def travis_section(slug: str, message: str) -> Iterator[None]:
   travis_fold_state = "/tmp/.travis_fold_current"
 
   def travis_fold(action: str, target: str) -> None:
@@ -89,7 +89,7 @@ def write_config(config: configparser.ConfigParser) -> None:
 
 
 @contextmanager
-def temporarily_rewrite_config(updated_config: configparser.ConfigParser):
+def temporarily_rewrite_config(updated_config: configparser.ConfigParser) -> Iterator[None]:
   with open(PANTS_INI, "r") as f:
     original_config = f.read()
   write_config(updated_config)

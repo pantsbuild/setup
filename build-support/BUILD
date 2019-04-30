@@ -15,6 +15,14 @@ python_binary(
 )
 
 python_binary(
+  name='mypy',
+  sources='mypy.py',
+  dependencies=[
+    ':common',
+  ],
+)
+
+python_binary(
   name='shellcheck',
   sources='shellcheck.py',
   dependencies=[

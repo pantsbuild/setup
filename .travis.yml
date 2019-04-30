@@ -90,6 +90,7 @@ matrix:
             - shellcheck
       script:
         - ./build-support/shellcheck.py
+        - ./build-support/mypy.py
 
     - name: "OSX 10.11 - El Capitan"
       <<: *osx_setup
