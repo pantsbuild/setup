@@ -4,9 +4,6 @@
 """Utils for scripts to interface with the outside world."""
 
 import configparser
-import os
-import shutil
-import tempfile
 import time
 from contextlib import contextmanager
 from enum import Enum
@@ -71,36 +68,6 @@ def travis_section(slug: str, message: str):
   finally:
     travis_fold("end", read_travis_fold_state())
     remove_travis_fold_state()
-
-# --------------------------------------------------------
-# Setup hermetic environment
-# --------------------------------------------------------
-
-@contextmanager
-def copy_pants_into_tmpdir():
-  with tempfile.TemporaryDirectory() as tmpdir:
-    # NB: Unlike the install guide's instruction to curl the `./pants` script, we directly
-    # copy it to ensure we are using the branch's version of the script and to avoid
-    # network pings.
-    shutil.copy("pants", f"{tmpdir}/pants")
-    yield tmpdir
-
-
-@contextmanager
-def set_pants_cache_to_tmpdir():
-  with tempfile.TemporaryDirectory() as tmpdir:
-    original_env = os.environ.copy()
-    os.environ["PANTS_HOME"] = tmpdir
-    try:
-      yield
-    finally:
-      os.environ = original_env
-
-
-@contextmanager
-def setup_pants_in_tmpdir():
-  with set_pants_cache_to_tmpdir(), copy_pants_into_tmpdir() as buildroot_tmpdir:
-    yield buildroot_tmpdir
 
 # --------------------------------------------------------
 # Rewrite pants.ini
