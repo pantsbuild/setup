@@ -15,7 +15,7 @@ env:
     - PATH="${PYENV_ROOT}/versions/${PYENV_PY37_VERSION}/bin:${PATH}"
 
 script:
-  - ./pants test :: -- --verbose
+  - ./pants test '::' -- --verbose
 
 cache:
   directories:
