@@ -14,34 +14,8 @@ env:
     - PATH="${PYENV_ROOT}/versions/${PYENV_PY36_VERSION}/bin:${PATH}"
     - PATH="${PYENV_ROOT}/versions/${PYENV_PY37_VERSION}/bin:${PATH}"
 
-test_1_14: &test_1_14 >
-  ./build-support/ci.py
-  --pants-versions 1.14.0
-  --python-versions unspecified
-
-test_1_15: &test_1_15 >
-  ./build-support/ci.py
-  --pants-versions 1.15.0
-  --python-versions unspecified 2.7 3.6
-
-test_1_16: &test_1_16 >
-  ./build-support/ci.py
-  --pants-versions config
-  --python-versions unspecified 2.7 3.6 3.7
-
-test_1_16_without_py37: &test_1_16_without_py37 >
-  ./build-support/ci.py
-  --pants-versions config
-  --python-versions unspecified 2.7 3.6
-
-test_first_time_install: &test_first_time_install >
-  ./pants test tests:first_time_install
-
 script:
-  - *test_1_14
-  - *test_1_15
-  - *test_1_16
-  - *test_first_time_install
+  - ./pants test tests:: -- --verbose
 
 cache:
   directories:
@@ -123,26 +97,18 @@ matrix:
       sudo: required
       env:
         - CACHE_NAME="linux.precise"
+        - SKIP_PYTHON37_TESTS=true
       before_install:
         - ./build-support/install_python_for_ci.sh "${PYENV_PY36_VERSION}"
-      script:
-        - *test_1_14
-        - *test_1_15
-        - *test_1_16_without_py37
-        - *test_first_time_install
 
     - name: "Ubuntu 14.04 - Trusty"
       <<: *linux_setup
       dist: trusty
       env:
         - CACHE_NAME="linux.trusty"
+        - SKIP_PYTHON37_TESTS=true
       before_install:
         - pyenv global 2.7.14 3.6.3
-      script:
-        - *test_1_14
-        - *test_1_15
-        - *test_1_16_without_py37
-        - *test_first_time_install
 
     - name: "Ubuntu 16.04 - Xenial"
       <<: *linux_setup

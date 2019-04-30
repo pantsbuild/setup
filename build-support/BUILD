@@ -7,14 +7,6 @@ python_library(
 )
 
 python_binary(
-  name='ci',
-  sources='ci.py',
-  dependencies=[
-    ':common',
-  ],
-)
-
-python_binary(
   name='mypy',
   sources='mypy.py',
   dependencies=[
