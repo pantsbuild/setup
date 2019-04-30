@@ -48,4 +48,3 @@ class TestSanityCheck(TestBase):
   def test_pants_1_16(self) -> None:
     self.sanity_check(python_version=None, pants_version="1.16.0.dev3")
     self.check_for_all_python_versions("2.7", "3.6", "3.7", pants_version="1.16.0.dev3")
-

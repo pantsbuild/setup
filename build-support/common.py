@@ -8,7 +8,6 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator, Tuple
 
-
 _SCRIPT_START_TIME = time.time()
 
 _CLEAR_LINE = "\x1b[K"
