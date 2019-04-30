@@ -8,7 +8,7 @@ import os
 import subprocess
 from contextlib import contextmanager
 from enum import Enum
-from typing import List
+from typing import Iterator, List
 
 from common import (CONFIG_GLOBAL_SECTION, banner, die, read_config,
                     temporarily_rewrite_config, travis_section)
@@ -27,8 +27,8 @@ class PantsVersion(Enum):
   one_sixteen = "1.16.0"
   one_seventeen = "1.17.0"
 
-  def __str__(self):
-      return self.value
+  def __str__(self) -> str:
+      return str(self.value)
 
 
 class PythonVersion(Enum):
@@ -37,8 +37,8 @@ class PythonVersion(Enum):
   py36 = "3.6"
   py37 = "3.7"
 
-  def __str__(self):
-    return self.value
+  def __str__(self) -> str:
+    return str(self.value)
 
 
 def main() -> None:
@@ -108,7 +108,7 @@ def run_tests(*, skip_pantsd_tests: bool) -> None:
 
 
 @contextmanager
-def setup_pants_version(test_pants_version: PantsVersion):
+def setup_pants_version(test_pants_version: PantsVersion) -> Iterator[None]:
   """Modify pants.ini to allow the pants version to be a specified version or to keep what was originally there."""
   updated_config = read_config()
   config_entry = "pants_version"
@@ -126,7 +126,7 @@ def setup_pants_version(test_pants_version: PantsVersion):
 
 
 @contextmanager
-def setup_python_version(test_python_version: PythonVersion):
+def setup_python_version(test_python_version: PythonVersion) -> Iterator[None]:
   """Modify pants.ini to allow the Python version to be unspecified or change to what was requested."""
   updated_config = read_config()
   config_entry = "pants_runtime_python_version"
