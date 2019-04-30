@@ -2,6 +2,7 @@
 /.pants.workdir.file_lock
 /.pids/
 
+/.cache/
 /.mypy_cache/
 
 __pycache__/
