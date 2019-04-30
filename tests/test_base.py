@@ -6,7 +6,7 @@ import os
 import shutil
 import tempfile
 from contextlib import contextmanager
-from typing import Iterator
+from typing import Iterator, Optional
 from unittest import TestCase
 
 
@@ -38,19 +38,19 @@ class TestBase(TestCase):
     with self.set_pants_cache_to_tmpdir(), self.copy_pants_into_tmpdir() as buildroot_tmpdir:
       yield buildroot_tmpdir
 
-def create_pants_ini(
-  self, *, parent_folder: str, pants_version: str, python_version: Optional[str] = None
-  ) -> None:
-  config = configparser.ConfigParser()
-  config["GLOBAL"] = {
-    "pants_version": pants_version,
-    "plugins": ["pantsbuild.pants.contrib.go==%(pants_version)s"]
-  }
-  if python_version is not None:
-    config["GLOBAL"]["pants_runtime_python_version"] = python_version
-  with open(f"{parent_folder}/pants.ini", "w") as f:
-    config.write(f)
+  def create_pants_ini(
+    self, *, parent_folder: str, pants_version: str, python_version: Optional[str] = None
+    ) -> None:
+    config = configparser.ConfigParser()
+    config["GLOBAL"] = {
+      "pants_version": pants_version,
+      "plugins": "['pantsbuild.pants.contrib.go==%(pants_version)s']"
+    }
+    if python_version is not None:
+      config["GLOBAL"]["pants_runtime_python_version"] = python_version
+    with open(f"{parent_folder}/pants.ini", "w") as f:
+      config.write(f)
 
-def create_dummy_build(self, *, parent_folder: str) -> None:
-  with open(f"{parent_folder}/BUILD", "w") as f:
-    f.write("target(name='test')\n")
+  def create_dummy_build(self, *, parent_folder: str) -> None:
+    with open(f"{parent_folder}/BUILD", "w") as f:
+      f.write("target(name='test')\n")

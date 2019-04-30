@@ -5,7 +5,7 @@
 
 import os
 import subprocess
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from test_base import TestBase
 
@@ -22,7 +22,7 @@ class TestSanityCheck(TestBase):
       )
       self.create_dummy_build(parent_folder=tmpdir)
 
-      def run_command(command: List[str], **kwargs) -> None:
+      def run_command(command: List[str], **kwargs: Any) -> None:
         subprocess.run(command, cwd=tmpdir, **kwargs)
 
       run_command(version_command)
@@ -32,20 +32,20 @@ class TestSanityCheck(TestBase):
         run_command(version_command, env=env_with_pantsd)
         run_command(list_command, env=env_with_pantsd)
 
-  def check_for_all_python_versions(self, *python_versions: List[str], pants_version: str) -> None:
+  def check_for_all_python_versions(self, *python_versions: str, pants_version: str) -> None:
     for python_version in python_versions:
       if "SKIP_PYTHON37_TESTS" in os.environ and python_version == "3.7":
         continue
       self.sanity_check(pants_version=pants_version, python_version=python_version)
 
-  def test_pants_1_14(self):
+  def test_pants_1_14(self) -> None:
     self.sanity_check(python_version=None, pants_version="1.14.0")
 
-  def test_pants_1_15(self):
+  def test_pants_1_15(self) -> None:
     self.sanity_check(python_version=None, pants_version="1.15.0")
     self.check_for_all_python_versions("2.7", "3.6", pants_version="1.15.0")
 
-  def test_pants_1_16(self):
+  def test_pants_1_16(self) -> None:
     self.sanity_check(python_version=None, pants_version="1.16.0.dev3")
     self.check_for_all_python_versions("2.7", "3.6", "3.7", pants_version="1.16.0.dev3")
 
