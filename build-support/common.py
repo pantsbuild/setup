@@ -3,16 +3,10 @@
 
 """Utils for scripts to interface with the outside world."""
 
-import configparser
 import time
 from contextlib import contextmanager
-from enum import Enum
 from pathlib import Path
 from typing import Iterator, Tuple
-
-# --------------------------------------------------------
-# Logging utils
-# --------------------------------------------------------
 
 _SCRIPT_START_TIME = time.time()
 
@@ -68,33 +62,3 @@ def travis_section(slug: str, message: str) -> Iterator[None]:
   finally:
     travis_fold("end", read_travis_fold_state())
     remove_travis_fold_state()
-
-# --------------------------------------------------------
-# Rewrite pants.ini
-# --------------------------------------------------------
-
-PANTS_INI = 'pants.ini'
-CONFIG_GLOBAL_SECTION = "GLOBAL"
-
-
-def read_config() -> configparser.ConfigParser:
-  cp = configparser.ConfigParser(delimiters=[":"])
-  cp.read(PANTS_INI)
-  return cp
-
-
-def write_config(config: configparser.ConfigParser) -> None:
-  with open(PANTS_INI, 'w') as f:
-    config.write(f)
-
-
-@contextmanager
-def temporarily_rewrite_config(updated_config: configparser.ConfigParser) -> Iterator[None]:
-  with open(PANTS_INI, "r") as f:
-    original_config = f.read()
-  write_config(updated_config)
-  try:
-    yield
-  finally:
-    with open(PANTS_INI, "w") as f:
-      f.write(original_config)

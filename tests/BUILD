@@ -13,3 +13,11 @@ python_tests(
     ':test_base',
   ],
 )
+
+python_tests(
+  name='sanity_check',
+  sources='test_sanity_check.py',
+  dependencies=[
+    ':test_base',
+  ],
+)
