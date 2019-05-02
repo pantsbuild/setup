@@ -53,7 +53,7 @@ linux_setup: &linux_setup
 
 matrix:
   include:
-    - name: "Lint ./pants script"
+    - name: "Lint scripts, tests, and build-support"
       <<: *linux_setup
       dist: xenial
       before_install:
@@ -63,8 +63,7 @@ matrix:
           packages:
             - shellcheck
       script:
-        - ./build-support/shellcheck.py
-        - ./build-support/mypy.py
+        - ./build-support/precommit.py
 
     - name: "OSX 10.11 - El Capitan"
       <<: *osx_setup

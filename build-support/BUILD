@@ -15,6 +15,16 @@ python_binary(
 )
 
 python_binary(
+  name='precommit',
+  sources='precommit.py',
+  dependencies=[
+    ':common',
+    ':mypy',
+    ':shellcheck',
+  ],
+)
+
+python_binary(
   name='shellcheck',
   sources='shellcheck.py',
   dependencies=[
