@@ -190,4 +190,4 @@ pants_dir="$(bootstrap_pants "${pants_version}" "${python}")"
 # See https://blog.phusion.nl/2017/10/13/why-ruby-app-servers-break-on-macos-high-sierra-and-what-can-be-done-about-it/
 export no_proxy='*'
 
-exec "${pants_dir}/bin/python" "${pants_dir}/bin/pants" "$@"
+exec env LC_ALL=en_US.UTF-8 env LANG=en_US.UTF-8 "${pants_dir}/bin/python" "${pants_dir}/bin/pants" "$@"
