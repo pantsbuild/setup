@@ -86,7 +86,7 @@ jobs:
 
     - name: "OSX 10.13 - High Sierra"
       <<: *osx_setup
-      osx_image: xcode10.1
+      osx_image: xcode9.4
       env:
         - *env_osx_openssl
         - CACHE_NAME="osx.high_sierra"
