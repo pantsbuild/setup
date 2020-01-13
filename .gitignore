@@ -1,6 +1,7 @@
 /.pants.d/
 /.pants.workdir.file_lock
 /.pids/
+/logs/
 
 /.cache/
 /.mypy_cache/
