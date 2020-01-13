@@ -29,10 +29,10 @@ class TestFirstTimeInstall(TestBase):
       # Pip will resolve the most recent stable release, which will be the output of
       # `./pants --version`.
       downloaded_version = completed_process.stdout.strip()
-      self.assertTrue(re.search(
+      assert re.search(
         fr"virtual environment successfully created at .*/bootstrap.*/{downloaded_version}_py",
         completed_process.stderr, flags=re.MULTILINE
-      ))
+      )
 
   def test_only_bootstraps_the_first_time(self) -> None:
     with self.setup_pants_in_tmpdir() as tmpdir:
@@ -43,8 +43,7 @@ class TestFirstTimeInstall(TestBase):
         encoding="utf-8",
         cwd=tmpdir
       ).stderr
-      # Check that stderr is truthy, i.e. there is output.
-      self.assertTrue(first_run_pants_script_logging)
+      assert first_run_pants_script_logging
       second_run_pants_script_logging = subprocess.run(
         ["./pants", "--version"],
         check=True,
@@ -52,5 +51,4 @@ class TestFirstTimeInstall(TestBase):
         encoding="utf-8",
         cwd=tmpdir
       ).stderr
-      # Check that stderr is falsy, i.e. there is no output.
-      self.assertFalse(second_run_pants_script_logging)
+      assert not second_run_pants_script_logging

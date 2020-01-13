@@ -46,6 +46,9 @@ class TestBase(TestCase):
       "pants_version": pants_version,
       "plugins": "['pantsbuild.pants.contrib.go==%(pants_version)s']"
     }
+    # TODO: stop using `pants_runtime_python_versoin`, which is no longer allowed in Pants. Figure
+    # out how to set the Python version some other way, which could be via the $PYTHON
+    # env var (although that won't test that we resolve the default correctly..).
     if python_version is not None:
       config["GLOBAL"]["pants_runtime_python_version"] = python_version
     with open(f"{parent_folder}/pants.ini", "w") as f:

@@ -23,7 +23,7 @@ class TestSanityCheck(TestBase):
       self.create_dummy_build(parent_folder=tmpdir)
 
       def run_command(command: List[str], **kwargs: Any) -> None:
-        subprocess.run(command, cwd=tmpdir, **kwargs)
+        subprocess.run(command, check=True, cwd=tmpdir, **kwargs)
 
       run_command(version_command)
       run_command(list_command)

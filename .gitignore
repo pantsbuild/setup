@@ -4,5 +4,10 @@
 
 /.cache/
 /.mypy_cache/
+/.tox/
 
 __pycache__/
+
+.DS_Store
+/.idea/
+/.vscode/
