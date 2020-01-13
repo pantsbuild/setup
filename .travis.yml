@@ -131,4 +131,5 @@ jobs:
       env:
         - CACHE_NAME="linux.bionic"
       before_install:
-        - pyenv global 2.7.15 3.6.7 3.7.1
+        - pyenv versions
+        - pyenv global 2.7.17 3.6.9 3.7.5 3.8.0
