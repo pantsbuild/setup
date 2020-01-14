@@ -59,6 +59,8 @@ jobs:
     - name: "Lint and check formatting"
       <<: *linux_setup
       dist: xenial
+      before_install:
+        - pyenv global 3.6.7
       addons:
         apt:
           packages:
@@ -131,5 +133,4 @@ jobs:
       env:
         - CACHE_NAME="linux.bionic"
       before_install:
-        - pyenv versions
         - pyenv global 2.7.17 3.6.9 3.7.5 3.8.0
