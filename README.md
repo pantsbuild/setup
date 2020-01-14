@@ -12,7 +12,7 @@ We use [tox](https://testrun.org/tox/en/latest/) for test automation. To run the
 $ tox
 ```
 
-You may run certain environments with `tox -e` (run `tox -a` to see all options):
+You may run certain checks (`environments` in tox) with `tox -e` (run `tox -a` to see all options):
 
 ```bash
 $ tox -e format-run
