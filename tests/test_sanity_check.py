@@ -35,8 +35,6 @@ class TestSanityCheck(TestBase):
         self, *python_versions: str, pants_version: Optional[str]
     ) -> None:
         for python_version in python_versions:
-            if "SKIP_PYTHON38_TESTS" in os.environ and python_version == "3.8":
-                continue
             self.sanity_check(pants_version=pants_version, python_version=python_version)
 
     def test_pants_1_24(self) -> None:
