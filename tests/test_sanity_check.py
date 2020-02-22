@@ -15,10 +15,10 @@ class TestSanityCheck(TestBase):
         version_command = ["./pants", "--version"]
         list_command = ["./pants", "list", "::"]
 
-        with self.setup_pants_in_tmpdir() as tmpdir:
-            self.create_pants_ini(
-                parent_folder=tmpdir, pants_version=pants_version, python_version=python_version
-            )
+        with self.setup_pants_in_tmpdir() as tmpdir, self.maybe_run_pyenv_local(
+            python_version, parent_folder=tmpdir
+        ):
+            self.create_pants_ini(parent_folder=tmpdir, pants_version=pants_version)
             self.create_dummy_build(parent_folder=tmpdir)
 
             def run_command(command: List[str], **kwargs: Any) -> None:
@@ -45,5 +45,5 @@ class TestSanityCheck(TestBase):
         self.check_for_all_python_versions("2.7", "3.6", pants_version="1.15.0")
 
     def test_pants_1_16(self) -> None:
-        self.sanity_check(python_version=None, pants_version="1.16.0.dev3")
-        self.check_for_all_python_versions("2.7", "3.6", "3.7", pants_version="1.16.0.dev3")
+        self.sanity_check(python_version=None, pants_version="1.16.0")
+        self.check_for_all_python_versions("2.7", "3.6", "3.7", pants_version="1.16.0")
