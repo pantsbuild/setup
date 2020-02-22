@@ -38,6 +38,7 @@ class TestBase(TestCase):
             encoding="utf-8",
             check=True,
         ).stdout.splitlines()
+        print(self.pyenv_versions)
 
     @contextmanager
     def copy_pants_into_tmpdir(self) -> Iterator[str]:
