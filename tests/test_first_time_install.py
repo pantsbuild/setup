@@ -4,6 +4,7 @@
 """Test that the first time installation flow described by
 https://www.pantsbuild.org/install.html#recommended-installation works as expected."""
 
+import os
 import re
 import subprocess
 
@@ -59,11 +60,13 @@ class TestFirstTimeInstall(TestBase):
         assert "does not work with Pants <= 1.16.0" in result.stderr
 
     def test_python2_fails(self) -> None:
-        with self.setup_pants_in_tmpdir() as tmpdir, self.maybe_run_pyenv_local(
-            "2.7", parent_folder=tmpdir
-        ):
+        with self.setup_pants_in_tmpdir() as tmpdir:
             result = subprocess.run(
-                ["./pants", "--version"], cwd=tmpdir, stderr=subprocess.PIPE, encoding="utf-8"
+                ["./pants", "--version"],
+                cwd=tmpdir,
+                stderr=subprocess.PIPE,
+                encoding="utf-8",
+                env={**os.environ, "PYTHON": "python2"},
             )
         assert result.returncode != 0
         assert "Pants requires Python 3.6+ to run" in result.stderr

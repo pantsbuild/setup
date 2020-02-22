@@ -111,7 +111,6 @@ function determine_default_python_exe {
     fi
     echo "${interpreter_path}" && return 0
   done
-  die "No valid Python interpreter found. Pants requires Python 3.6+ to run."
 }
 
 function determine_python_exe {
@@ -119,8 +118,18 @@ function determine_python_exe {
     python_bin_name="${PYTHON_BIN_NAME}"
   else
     python_bin_name="$(determine_default_python_exe)"
+    if [[ -z "${python_bin_name}" ]]; then
+      die "No valid Python interpreter found. Pants requires Python 3.6+ to run."
+    fi
   fi
-  get_exe_path_or_die "${python_bin_name}"
+  python_exe="$(get_exe_path_or_die "${python_bin_name}")"
+  major_minor_version="$(get_python_major_minor_version "${python_exe}")"
+  for valid_version in '36' '37' '38' '39'; do
+    if [[ "${major_minor_version}" == "${valid_version}" ]]; then
+      echo "${python_exe}" && return 0
+    fi
+  done
+  die "Invalid Python interpreter version for ${python_exe}. Pants requires Python 3.6+ to run."
 }
 
 # TODO(John Sirois): GC race loser tmp dirs leftover from bootstrap_XXX
