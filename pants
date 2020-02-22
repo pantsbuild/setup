@@ -116,7 +116,15 @@ function determine_default_python_exe {
     supported_message='3.6+'
   fi
   for version in "${supported_python_versions[@]}"; do
-    command -v "python${version}" && return 0
+    interpreter_path="$(command -v "python${version}")"
+    if [[ -z "${interpreter_path}" ]]; then
+      continue
+    fi
+    # Check if the Python version in installed via Pyenv but not activated.
+    if [[ "$("${interpreter_path}" --version 2>&1 > /dev/null)" == "pyenv: python${version}"* ]]; then
+      continue
+    fi
+    echo "${interpreter_path}" && return 0
   done
   die "No valid Python interpreter found. For this Pants version, Pants requires Python ${supported_message}."
 }
