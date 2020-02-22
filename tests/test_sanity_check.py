@@ -35,14 +35,14 @@ class TestSanityCheck(TestBase):
         self, *python_versions: str, pants_version: Optional[str]
     ) -> None:
         for python_version in python_versions:
-            if "SKIP_PYTHON37_TESTS" in os.environ and python_version == "3.7":
+            if "SKIP_PYTHON38_TESTS" in os.environ and python_version == "3.8":
                 continue
             self.sanity_check(pants_version=pants_version, python_version=python_version)
 
     def test_pants_1_24(self) -> None:
         self.sanity_check(python_version=None, pants_version="1.24.0")
-        self.check_for_all_python_versions("3.6", "3.7", pants_version="1.24.0")
+        self.check_for_all_python_versions("3.6", "3.7", "3.8", pants_version="1.24.0")
 
     def test_pants_latest(self) -> None:
         self.sanity_check(python_version=None, pants_version=None)
-        self.check_for_all_python_versions("3.6", "3.7", pants_version=None)
+        self.check_for_all_python_versions("3.6", "3.7", "3.8", pants_version=None)
