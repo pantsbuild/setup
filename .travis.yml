@@ -6,11 +6,13 @@ branches:
 
 env:
   global:
+    - PYENV_PY27_VERSION=2.7.17
     - PYENV_PY36_VERSION=3.6.10
     - PYENV_PY37_VERSION=3.7.6
     # NB: Linux shards use Pyenv to pre-install Python. We must not override
     # PYENV_ROOT on those shards, or their Python will no longer work.
     - PYENV_ROOT="${PYENV_ROOT:-${HOME}/.pants_pyenv}"
+    - PATH="${PYENV_ROOT}/versions/${PYENV_PY27_VERSION}/bin:${PATH}"
     - PATH="${PYENV_ROOT}/versions/${PYENV_PY36_VERSION}/bin:${PATH}"
     - PATH="${PYENV_ROOT}/versions/${PYENV_PY37_VERSION}/bin:${PATH}"
 
@@ -39,7 +41,7 @@ osx_setup: &osx_setup
       LDFLAGS="-L/usr/local/opt/openssl/lib"
       CPPFLAGS="-I/usr/local/opt/openssl/include"
   before_install:
-    - ./build-support/install_python_for_ci.sh "${PYENV_PY36_VERSION}" "${PYENV_PY37_VERSION}"
+    - ./build-support/install_python_for_ci.sh "${PYENV_PY27_VERSION}" "${PYENV_PY36_VERSION}" "${PYENV_PY37_VERSION}"
   before_script:
     # Override file handler and thread limits
     - ulimit -c unlimited
@@ -105,10 +107,11 @@ jobs:
       dist: precise
       sudo: required
       env:
+        - PYENV_ROOT="${HOME}/.pants_pyenv}"
         - CACHE_NAME="linux.precise"
         - SKIP_PYTHON37_TESTS=true
       before_install:
-        - ./build-support/install_python_for_ci.sh "${PYENV_PY36_VERSION}"
+        - ./build-support/install_python_for_ci.sh "${PYENV_PY27_VERSION}" "${PYENV_PY36_VERSION}"
 
     - name: "Ubuntu 14.04 - Trusty"
       <<: *linux_setup
