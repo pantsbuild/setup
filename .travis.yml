@@ -6,16 +6,19 @@ branches:
 
 env:
   global:
-    - PYENV_PY36_VERSION=3.6.8
-    - PYENV_PY37_VERSION=3.7.2
+    - PYENV_PY36_VERSION=3.6.10
+    - PYENV_PY37_VERSION=3.7.6
     # NB: Linux shards use Pyenv to pre-install Python. We must not override
     # PYENV_ROOT on those shards, or their Python will no longer work.
     - PYENV_ROOT="${PYENV_ROOT:-${HOME}/.pants_pyenv}"
     - PATH="${PYENV_ROOT}/versions/${PYENV_PY36_VERSION}/bin:${PATH}"
     - PATH="${PYENV_ROOT}/versions/${PYENV_PY37_VERSION}/bin:${PATH}"
 
+install:
+  - pip install tox
+
 script:
-  - ./pants test '::' -- --verbose
+  - tox -e test
 
 cache:
   directories:
@@ -51,9 +54,9 @@ linux_setup: &linux_setup
     - "3.6"
     - "3.7"
 
-matrix:
+jobs:
   include:
-    - name: "Lint scripts, tests, and build-support"
+    - name: "Lint and check formatting"
       <<: *linux_setup
       dist: xenial
       before_install:
@@ -63,7 +66,7 @@ matrix:
           packages:
             - shellcheck
       script:
-        - ./build-support/precommit.py
+        - tox -e format-check,lint,typecheck
 
     - name: "OSX 10.11 - El Capitan"
       <<: *osx_setup
@@ -89,6 +92,13 @@ matrix:
       env:
         - *env_osx_openssl
         - CACHE_NAME="osx.high_sierra"
+
+    - name: "OSX 10.14 - Mojave"
+      <<: *osx_setup
+      osx_image: xcode11.3
+      env:
+        - *env_osx_openssl
+        - CACHE_NAME="osx.mojave"
 
     - name: "Ubuntu 12.04 - Precise"
       <<: *linux_setup
@@ -116,3 +126,11 @@ matrix:
         - CACHE_NAME="linux.xenial"
       before_install:
         - pyenv global 2.7.15 3.6.7 3.7.1
+
+    - name: "Ubuntu 18.04 - Bionic"
+      <<: *linux_setup
+      dist: bionic
+      env:
+        - CACHE_NAME="linux.bionic"
+      before_install:
+        - pyenv global 2.7.17 3.6.9 3.7.5 3.8.0
