@@ -33,12 +33,11 @@ class TestBase(TestCase):
                 "`export PYENV_ROOT=$(pyenv root)`."
             )
         self.pyenv_versions = subprocess.run(
-            [self.pyenv_bin, "versions", "--bare"],
+            [self.pyenv_bin, "versions", "--bare", "--skip-aliases"],
             stdout=subprocess.PIPE,
             encoding="utf-8",
             check=True,
         ).stdout.splitlines()
-        print(self.pyenv_versions)
 
     @contextmanager
     def copy_pants_into_tmpdir(self) -> Iterator[str]:
