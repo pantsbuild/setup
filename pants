@@ -140,10 +140,13 @@ function bootstrap_pants {
     (
       mkdir -p "${PANTS_BOOTSTRAP}"
       staging_dir="$(tempdir "${PANTS_BOOTSTRAP}")"
-      "${python}" -m venv "${staging_dir}/install"
-      "${staging_dir}/install/bin/pip" install -U pip
-      "${staging_dir}/install/bin/pip" install "${pants_requirement}"
-      ln -s "${staging_dir}/install" "${staging_dir}/${target_folder_name}"
+      staging_venv_dir="${staging_dir}/venv"
+      "${python}" -m venv "${staging_venv_dir}"
+      # shellcheck source=/dev/null
+      source "${staging_venv_dir}/bin/activate"
+      pip install -U pip
+      pip install "${pants_requirement}"
+      ln -s "${staging_venv_dir}" "${staging_dir}/${target_folder_name}"
       mv "${staging_dir}/${target_folder_name}" "${PANTS_BOOTSTRAP}/${target_folder_name}"
       green "New virtual environment successfully created at ${PANTS_BOOTSTRAP}/${target_folder_name}."
     ) 1>&2
