@@ -4,6 +4,20 @@ branches:
   only:
     - gh-pages
 
+env:
+  global:
+    - PYENV_PY27_VERSION=2.7.17
+    - PYENV_PY36_VERSION=3.6.10
+    - PYENV_PY37_VERSION=3.7.6
+    - PYENV_PY38_VERSION=3.8.1
+    # NB: Linux shards use Pyenv to pre-install Python. We must not override
+    # PYENV_ROOT on those shards, or their Python will no longer work.
+    - PYENV_ROOT="${PYENV_ROOT:-${HOME}/.pants_pyenv}"
+    - PATH="${PYENV_ROOT}/versions/${PYENV_PY27_VERSION}/bin:${PATH}"
+    - PATH="${PYENV_ROOT}/versions/${PYENV_PY36_VERSION}/bin:${PATH}"
+    - PATH="${PYENV_ROOT}/versions/${PYENV_PY37_VERSION}/bin:${PATH}"
+    - PATH="${PYENV_ROOT}/versions/${PYENV_PY38_VERSION}/bin:${PATH}"
+
 language: python
 os: linux
 
@@ -21,19 +35,12 @@ osx_setup: &osx_setup
       packages:
         - openssl
   env:
-    - &env_osx >
+    # These flags are necessary to get OpenSSL working on OSX. See
+    # https://github.com/pyenv/pyenv/wiki/Common-build-problems#error-the-python-ssl-extension-was-not-compiled-missing-the-openssl-lib.
+    - &env_osx_openssl >
       PATH="/usr/local/opt/openssl/bin:$PATH"
       LDFLAGS="-L/usr/local/opt/openssl/lib"
       CPPFLAGS="-I/usr/local/opt/openssl/include"
-      PYENV_PY27_VERSION=2.7.17
-      PYENV_PY36_VERSION=3.6.10
-      PYENV_PY37_VERSION=3.7.6
-      PYENV_PY38_VERSION=3.8.1
-      PYENV_ROOT="${HOME}/.pants_pyenv}"
-      PATH="${PYENV_ROOT}/versions/${PYENV_PY27_VERSION}/bin:${PATH}"
-      PATH="${PYENV_ROOT}/versions/${PYENV_PY36_VERSION}/bin:${PATH}"
-      PATH="${PYENV_ROOT}/versions/${PYENV_PY37_VERSION}/bin:${PATH}"
-      PATH="${PYENV_ROOT}/versions/${PYENV_PY38_VERSION}/bin:${PATH}"
   before_install:
     - ./build-support/install_python_for_ci.sh "${PYENV_PY27_VERSION}" "${PYENV_PY36_VERSION}" "${PYENV_PY37_VERSION}" "${PYENV_PY38_VERSION}"
   before_script:
@@ -62,14 +69,14 @@ jobs:
       <<: *osx_setup
       osx_image: xcode8.0
       env:
-        - *env_osx
+        - *env_osx_openssl
         - CACHE_NAME="osx.el_capitan"
 
     - name: "OSX 10.12 - Sierra"
       <<: *osx_setup
       osx_image: xcode9.2
       env:
-        - *env_osx
+        - *env_osx_openssl
         - CACHE_NAME="osx.sierra"
         # OSX 10.12 Sierra frequently flakes when running with Pantsd. Restore the
         # original tests once https://github.com/pantsbuild/pants/issues/6714 and
@@ -80,14 +87,14 @@ jobs:
       <<: *osx_setup
       osx_image: xcode9.4
       env:
-        - *env_osx
+        - *env_osx_openssl
         - CACHE_NAME="osx.high_sierra"
 
     - name: "OSX 10.14 - Mojave"
       <<: *osx_setup
       osx_image: xcode11.3
       env:
-        - *env_osx
+        - *env_osx_openssl
         - CACHE_NAME="osx.mojave"
 
     - name: "Ubuntu 18.04 - Bionic"
@@ -97,7 +104,5 @@ jobs:
         - "3.6"
         - "3.7"
         - "3.8"
-      env:
-        - CACHE_NAME="linux.bionic"
       before_install:
         - pyenv global 2.7.17 3.6.9 3.7.5 3.8.0
