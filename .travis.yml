@@ -4,6 +4,9 @@ branches:
   only:
     - gh-pages
 
+language: python
+os: linux
+
 install:
   - pip install tox
 
@@ -19,12 +22,9 @@ osx_setup: &osx_setup
         - openssl
   env:
     - &env_osx >
-      # These flags are necessary to get OpenSSL working on OSX. See
-      # https://github.com/pyenv/pyenv/wiki/Common-build-problems#error-the-python-ssl-extension-was-not-compiled-missing-the-openssl-lib.
       PATH="/usr/local/opt/openssl/bin:$PATH"
       LDFLAGS="-L/usr/local/opt/openssl/lib"
       CPPFLAGS="-I/usr/local/opt/openssl/include"
-      # We use Pyenv to install all the required Python versions.
       PYENV_PY27_VERSION=2.7.17
       PYENV_PY36_VERSION=3.6.10
       PYENV_PY37_VERSION=3.7.6
@@ -47,8 +47,6 @@ osx_setup: &osx_setup
 jobs:
   include:
     - name: "Lint and check formatting"
-      os: linux
-      language: python
       python:
         - "3.6"
       before_install:
@@ -93,9 +91,7 @@ jobs:
         - CACHE_NAME="osx.mojave"
 
     - name: "Ubuntu 18.04 - Bionic"
-      os: linux
       dist: bionic
-      language: python
       python:
         - "2.7"
         - "3.6"
