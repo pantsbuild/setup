@@ -2,11 +2,7 @@
 # Licensed under the Apache License, Version 2.0 (see LICENSE).
 
 """Test that the first time installation flow described by
-https://www.pantsbuild.org/install.html#recommended-installation works as expected.
-
-Note that this does not test the result of `./pants generate-pants-ini`, because that
-is already tested by Pants at
-https://github.com/pantsbuild/pants/blob/master/tests/python/pants_test/core_tasks/test_generate_pants_ini.py."""
+https://www.pantsbuild.org/install.html#recommended-installation works as expected."""
 
 import re
 import subprocess
@@ -52,3 +48,22 @@ class TestFirstTimeInstall(TestBase):
                 cwd=tmpdir,
             ).stderr
             assert not second_run_pants_script_logging
+
+    def test_pants_1_16_and_earlier_fails(self) -> None:
+        with self.setup_pants_in_tmpdir() as tmpdir:
+            self.create_pants_ini(parent_folder=tmpdir, pants_version="1.16.0")
+            result = subprocess.run(
+                ["./pants", "--version"], cwd=tmpdir, stderr=subprocess.PIPE, encoding="utf-8"
+            )
+        assert result.returncode != 0
+        assert "does not work with Pants <= 1.16.0" in result.stderr
+
+    def test_python2_fails(self) -> None:
+        with self.setup_pants_in_tmpdir() as tmpdir, self.maybe_run_pyenv_local(
+            "2.7", parent_folder=tmpdir
+        ):
+            result = subprocess.run(
+                ["./pants", "--version"], cwd=tmpdir, stderr=subprocess.PIPE, encoding="utf-8"
+            )
+        assert result.returncode != 0
+        assert "Pants requires Python 3.6+ to run" in result.stderr
