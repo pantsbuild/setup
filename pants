@@ -18,11 +18,6 @@ PYTHON_BIN_NAME="${PYTHON:-unspecified}"
 PANTS_HOME="${PANTS_HOME:-${XDG_CACHE_HOME:-$HOME/.cache}/pants/setup}"
 PANTS_BOOTSTRAP="${PANTS_HOME}/bootstrap-$(uname -s)-$(uname -m)"
 
-VENV_VERSION=${VENV_VERSION:-16.4.3}
-
-VENV_PACKAGE=virtualenv-${VENV_VERSION}
-VENV_TARBALL=${VENV_PACKAGE}.tar.gz
-
 COLOR_RED="\x1b[31m"
 COLOR_GREEN="\x1b[32m"
 COLOR_RESET="\x1b[0m"
@@ -132,24 +127,7 @@ function determine_python_exe {
   die "Invalid Python interpreter version for ${python_exe}. Pants requires Python 3.6+ to run."
 }
 
-# TODO(John Sirois): GC race loser tmp dirs leftover from bootstrap_XXX
-# functions.  Any tmp dir w/o a symlink pointing to it can go.
-
-function bootstrap_venv {
-  if [[ ! -d "${PANTS_BOOTSTRAP}/${VENV_PACKAGE}" ]]; then
-    (
-      mkdir -p "${PANTS_BOOTSTRAP}"
-      staging_dir=$(tempdir "${PANTS_BOOTSTRAP}")
-      cd "${staging_dir}"
-      curl -LO "https://pypi.io/packages/source/v/virtualenv/${VENV_TARBALL}"
-      tar -xzf "${VENV_TARBALL}"
-      ln -s "${staging_dir}/${VENV_PACKAGE}" "${staging_dir}/latest"
-      mv "${staging_dir}/latest" "${PANTS_BOOTSTRAP}/${VENV_PACKAGE}"
-    ) 1>&2
-  fi
-  echo "${PANTS_BOOTSTRAP}/${VENV_PACKAGE}"
-}
-
+# TODO(John Sirois): GC race loser tmp dirs leftover. Any tmp dir w/o a symlink pointing to it can go.
 function bootstrap_pants {
   pants_version="$1"
   python="$2"
@@ -160,9 +138,9 @@ function bootstrap_pants {
 
   if [[ ! -d "${PANTS_BOOTSTRAP}/${target_folder_name}" ]]; then
     (
-      venv_path="$(bootstrap_venv)"
-      staging_dir=$(tempdir "${PANTS_BOOTSTRAP}")
-      "${python}" "${venv_path}/virtualenv.py" --no-download "${staging_dir}/install"
+      mkdir -p "${PANTS_BOOTSTRAP}"
+      staging_dir="$(tempdir "${PANTS_BOOTSTRAP}")"
+      "${python}" -m venv "${staging_dir}/install"
       "${staging_dir}/install/bin/pip" install -U pip
       "${staging_dir}/install/bin/pip" install "${pants_requirement}"
       ln -s "${staging_dir}/install" "${staging_dir}/${target_folder_name}"
