@@ -52,7 +52,7 @@ class TestFirstTimeInstall(TestBase):
 
     def test_pants_1_16_and_earlier_fails(self) -> None:
         with self.setup_pants_in_tmpdir() as tmpdir:
-            self.create_pants_ini(parent_folder=tmpdir, pants_version="1.16.0")
+            self.create_pants_config(parent_folder=tmpdir, pants_version="1.16.0", use_toml=False)
             result = subprocess.run(
                 ["./pants", "--version"], cwd=tmpdir, stderr=subprocess.PIPE, encoding="utf-8"
             )

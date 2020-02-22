@@ -11,6 +11,8 @@ from pathlib import Path
 from typing import Iterator, Optional
 from unittest import TestCase
 
+import toml
+
 
 class TestBase(TestCase):
     """A base class with useful utils for tests."""
@@ -102,17 +104,31 @@ class TestBase(TestCase):
             )
 
     @staticmethod
-    def create_pants_ini(*, parent_folder: str, pants_version: Optional[str]) -> None:
-        config = configparser.ConfigParser()
-        if pants_version is not None:
-            config["GLOBAL"] = {
+    def create_pants_config(
+        *, parent_folder: str, pants_version: Optional[str], use_toml: bool = True
+    ) -> None:
+        global_section = (
+            {
                 "pants_version": pants_version,
-                "plugins": "['pantsbuild.pants.contrib.go==%(pants_version)s']",
+                "plugins": ["pantsbuild.pants.contrib.go==%(pants_version)s"],
             }
+            if pants_version is not None
+            else {"plugins": ["pantsbuild.pants.contrib.go"]}
+        )
+        if use_toml:
+            config = {"GLOBAL": global_section}
+            # TODO: string interpolation does not work for TOML when the value comes from the same
+            #  section. This is fixed in Pants 1.26.0.dev1+.
+            if pants_version is not None:
+                config["GLOBAL"].pop("pants_version")
+                config["DEFAULT"] = {"pants_version": pants_version}
+            with Path(parent_folder, "pants.toml").open("w") as f:
+                toml.dump(config, f)
         else:
-            config["GLOBAL"] = {"plugins": "['pantsbuild.pants.contrib.go']"}
-        with open(f"{parent_folder}/pants.ini", "w") as f:
-            config.write(f)
+            cp = configparser.ConfigParser()
+            cp["GLOBAL"] = global_section  # type: ignore
+            with Path(parent_folder, "pants.ini").open("w") as f:
+                cp.write(f)
 
     @staticmethod
     def create_dummy_build(*, parent_folder: str) -> None:
