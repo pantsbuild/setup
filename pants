@@ -73,13 +73,11 @@ EOF
 
 # The high-level flow:
 # 1.) Resolve the Pants version from pants.ini or from the latest stable
-#     release to PyPi, so that we know what to name the venv folder and which
-#     Python versions we can use.
+#     release to PyPI, so that we know what to name the venv (virtual environment) folder and what
+#     to install with Pip.
 # 2.) Resolve the Python interpreter, first reading from the env var $PYTHON,
-#     then reading from pants.ini, then determining the default based off of
-#     which Python versions the Pants version supports.
-# 3.) Check if the venv (virtual environment) already exists via a naming/path convention,
-#     and create the venv if not found.
+#     then defaulting to Python 3.6+.
+# 3.) Check if the venv already exists via a naming convention, and create the venv if not found.
 # 4.) Execute Pants with the resolved Python interpreter and venv.
 #
 # After that, Pants itself will handle making sure any requested plugins
@@ -87,35 +85,22 @@ EOF
 
 function determine_pants_version {
   pants_version="$(get_pants_ini_config_value 'pants_version')"
-  if [[ -n "${pants_version}" ]]; then
-    echo "${pants_version}"
-  else
-    curl -sSL https://pypi.python.org/pypi/pantsbuild.pants/json |
-      python -c "import json, sys; print(json.load(sys.stdin)['info']['version'])"
+  if [[ -z "${pants_version}" ]]; then
+    pants_version="$(curl -sSL https://pypi.python.org/pypi/pantsbuild.pants/json |
+      python -c "import json, sys; print(json.load(sys.stdin)['info']['version'])")"
   fi
+  pants_major_version="$(echo "${pants_version}" | cut -d '.' -f1)"
+  pants_minor_version="$(echo "${pants_version}" | cut -d '.' -f2)"
+  if [[ "${pants_major_version}" -eq 1 && "${pants_minor_version}" -le 16 ]]; then
+    die "This version of the \`./pants\` script does not work with Pants <= 1.16.0. Instead,
+either upgrade your \`pants_version\` or use the version of the \`./pants\` script at
+https://raw.githubusercontent.com/pantsbuild/setup/3bb006e4a792ae83d7059ea76c0372ece7c1069d/pants."
+  fi
+  echo "${pants_version}"
 }
 
 function determine_default_python_exe {
-  pants_version="$1"
-  pants_major_version="$(echo "${pants_version}" | cut -d '.' -f1)"
-  pants_minor_version="$(echo "${pants_version}" | cut -d '.' -f2)"
-  if [[ "${pants_major_version}" -eq 1 && "${pants_minor_version}" -le 14 ]]; then
-    supported_python_versions=('2.7')
-    supported_message='2.7'
-  elif [[ "${pants_major_version}" -eq 1 && "${pants_minor_version}" -eq 15 ]]; then
-    supported_python_versions=('3.6' '2.7')
-    supported_message='2.7 or 3.6'
-  elif [[ "${pants_major_version}" -eq 1 && "${pants_minor_version}" -eq 16 ]]; then
-    supported_python_versions=('3.6' '3.7' '2.7')
-    supported_message='2.7, 3.6, or 3.7'
-  elif [[ "${pants_major_version}" -eq 1 && "${pants_minor_version}" -eq 17 ]]; then
-    supported_python_versions=('3.6' '3.7' '3.8' '3.9')
-    supported_message='3.6+'
-  else
-    supported_python_versions=('3.9' '3.8' '3.7' '3.6')
-    supported_message='3.6+'
-  fi
-  for version in "${supported_python_versions[@]}"; do
+  for version in '3.6' '3.7' '3.8' '3.9'; do
     interpreter_path="$(command -v "python${version}")"
     if [[ -z "${interpreter_path}" ]]; then
       continue
@@ -126,22 +111,25 @@ function determine_default_python_exe {
     fi
     echo "${interpreter_path}" && return 0
   done
-  die "No valid Python interpreter found. For this Pants version, Pants requires Python ${supported_message}."
 }
 
 function determine_python_exe {
-  pants_version="$1"
   if [[ "${PYTHON_BIN_NAME}" != 'unspecified' ]]; then
     python_bin_name="${PYTHON_BIN_NAME}"
   else
-    interpreter_version="$(get_pants_ini_config_value 'pants_runtime_python_version')"
-    if [[ -n "${interpreter_version}" ]]; then
-      python_bin_name="python${interpreter_version}"
-    else
-      python_bin_name="$(determine_default_python_exe "${pants_version}")"
+    python_bin_name="$(determine_default_python_exe)"
+    if [[ -z "${python_bin_name}" ]]; then
+      die "No valid Python interpreter found. Pants requires Python 3.6+ to run."
     fi
   fi
-  get_exe_path_or_die "${python_bin_name}"
+  python_exe="$(get_exe_path_or_die "${python_bin_name}")"
+  major_minor_version="$(get_python_major_minor_version "${python_exe}")"
+  for valid_version in '36' '37' '38' '39'; do
+    if [[ "${major_minor_version}" == "${valid_version}" ]]; then
+      echo "${python_exe}" && return 0
+    fi
+  done
+  die "Invalid Python interpreter version for ${python_exe}. Pants requires Python 3.6+ to run."
 }
 
 # TODO(John Sirois): GC race loser tmp dirs leftover from bootstrap_XXX
@@ -176,9 +164,6 @@ function bootstrap_pants {
       staging_dir=$(tempdir "${PANTS_BOOTSTRAP}")
       "${python}" "${venv_path}/virtualenv.py" --no-download "${staging_dir}/install"
       "${staging_dir}/install/bin/pip" install -U pip
-      # TODO: remove this once enum34 stabilizes. See
-      # https://bitbucket.org/stoneleaf/enum34/issues/27/enum34-118-broken.
-      "${staging_dir}/install/bin/pip" install "enum34==1.1.6 ; python_version == \"2.7\""
       "${staging_dir}/install/bin/pip" install "${pants_requirement}"
       ln -s "${staging_dir}/install" "${staging_dir}/${target_folder_name}"
       mv "${staging_dir}/${target_folder_name}" "${PANTS_BOOTSTRAP}/${target_folder_name}"
@@ -191,7 +176,7 @@ function bootstrap_pants {
 # Ensure we operate from the context of the ./pants buildroot.
 cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 pants_version="$(determine_pants_version)"
-python="$(determine_python_exe "${pants_version}")"
+python="$(determine_python_exe)"
 pants_dir="$(bootstrap_pants "${pants_version}" "${python}")"
 
 

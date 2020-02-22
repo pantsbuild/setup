@@ -102,12 +102,15 @@ class TestBase(TestCase):
             )
 
     @staticmethod
-    def create_pants_ini(*, parent_folder: str, pants_version: str) -> None:
+    def create_pants_ini(*, parent_folder: str, pants_version: Optional[str]) -> None:
         config = configparser.ConfigParser()
-        config["GLOBAL"] = {
-            "pants_version": pants_version,
-            "plugins": "['pantsbuild.pants.contrib.go==%(pants_version)s']",
-        }
+        if pants_version is not None:
+            config["GLOBAL"] = {
+                "pants_version": pants_version,
+                "plugins": "['pantsbuild.pants.contrib.go==%(pants_version)s']",
+            }
+        else:
+            config["GLOBAL"] = {"plugins": "['pantsbuild.pants.contrib.go']"}
         with open(f"{parent_folder}/pants.ini", "w") as f:
             config.write(f)
 
