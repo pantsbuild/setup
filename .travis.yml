@@ -25,7 +25,9 @@ install:
   - pip install tox
 
 script:
-  - tox -e test
+  # We need to force pytest to use a terse base for its temp dirs or we hit errors like:
+  # 2020-02-23T16:14:47,808: [0x1139575c0] /private/var/folders/17/5mc7816d3mndxjqgplq6057w0000gn/T/pytest-of-travis/pytest-0/test_pants_1_260/project_dir/.pids/watchman/watchman.sock: path is too long
+  - tox -e test -- --basetemp=${HOME}/tmp
 
 osx_setup: &osx_setup
   os: osx
