@@ -39,17 +39,15 @@ class TestSanityCheck(TestBase):
         self, *python_versions: str, pants_version: Optional[str], use_toml: bool = True
     ) -> None:
         for python_version in python_versions:
-            if "SKIP_PYTHON37_TESTS" in os.environ and python_version == "3.7":
-                continue
             self.sanity_check(
                 pants_version=pants_version, python_version=python_version, use_toml=use_toml
             )
 
     def test_pants_latest_stable(self) -> None:
         self.sanity_check(python_version=None, pants_version=None, use_toml=False)
-        self.check_for_all_python_versions("3.6", "3.7", pants_version=None, use_toml=False)
+        self.check_for_all_python_versions("3.6", "3.7", "3.8", pants_version=None, use_toml=False)
 
     # NB: the first release series to support TOML config files.
     def test_pants_1_26(self) -> None:
         self.sanity_check(python_version=None, pants_version="1.26.0.dev0")
-        self.check_for_all_python_versions("3.6", "3.7", pants_version="1.26.0.dev0")
+        self.check_for_all_python_versions("3.6", "3.7", "3.8", pants_version="1.26.0.dev0")
