@@ -4,9 +4,10 @@
 import shutil
 import subprocess
 from pathlib import Path, PurePath
-from typing import Optional, Protocol
+from typing import Optional
 
 import pytest
+from typing_extensions import Protocol
 
 
 @pytest.fixture(scope="session")
