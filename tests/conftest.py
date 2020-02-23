@@ -17,6 +17,7 @@ def project_root() -> PurePath:
             stdout=subprocess.PIPE,
             encoding="utf-8",
             check=True,
+            cwd=str(Path(__file__).parent),
         ).stdout.strip()
     )
 

@@ -100,32 +100,28 @@ class SanityChecker:
                 run_command(version_command, env=env_with_pantsd)
                 run_command(list_command, env=env_with_pantsd)
 
+    def sanity_check_for_all_python_versions(
+        self, *python_versions: str, pants_version: Optional[str], use_toml: bool = True
+    ) -> None:
+        for python_version in python_versions:
+            self.sanity_check(
+                pants_version=pants_version, python_version=python_version, use_toml=use_toml
+            )
+
 
 @pytest.fixture
-def sanity_checker(pyenv_bin: str, pyenv_versions: List[str], build_root: Path) -> SanityChecker:
+def checker(pyenv_bin: str, pyenv_versions: List[str], build_root: Path) -> SanityChecker:
     return SanityChecker(pyenv_bin=pyenv_bin, pyenv_versions=pyenv_versions, build_root=build_root)
 
 
-def check_for_all_python_versions(
-    sanity_checker: SanityChecker,
-    *python_versions: str,
-    pants_version: Optional[str],
-    use_toml: bool = True,
-) -> None:
-    for python_version in python_versions:
-        sanity_checker.sanity_check(
-            pants_version=pants_version, python_version=python_version, use_toml=use_toml
-        )
-
-
-def test_pants_latest_stable(sanity_checker: SanityChecker) -> None:
-    sanity_checker.sanity_check(python_version=None, pants_version=None, use_toml=False)
-    check_for_all_python_versions(
-        sanity_checker, "3.6", "3.7", "3.8", pants_version=None, use_toml=False
+def test_pants_latest_stable(checker: SanityChecker) -> None:
+    checker.sanity_check(python_version=None, pants_version=None, use_toml=False)
+    checker.sanity_check_for_all_python_versions(
+        "3.6", "3.7", "3.8", pants_version=None, use_toml=False
     )
 
 
 # NB: the first release series to support TOML config files.
-def test_pants_1_26(sanity_checker: SanityChecker) -> None:
-    sanity_checker.sanity_check(python_version=None, pants_version="1.26.0.dev0")
-    check_for_all_python_versions(sanity_checker, "3.6", "3.7", "3.8", pants_version="1.26.0.dev0")
+def test_pants_1_26(checker: SanityChecker) -> None:
+    checker.sanity_check(python_version=None, pants_version="1.26.0.dev0")
+    checker.sanity_check_for_all_python_versions("3.6", "3.7", "3.8", pants_version="1.26.0.dev0")
