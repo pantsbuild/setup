@@ -39,7 +39,7 @@ def test_only_bootstraps_the_first_time(build_root: Path) -> None:
         encoding="utf-8",
         cwd=str(build_root),
     ).stderr
-    assert first_run_pants_script_logging
+    assert "Collecting pantsbuild.pants==" in first_run_pants_script_logging
     second_run_pants_script_logging = subprocess.run(
         ["./pants", "--version"],
         check=True,
@@ -47,7 +47,7 @@ def test_only_bootstraps_the_first_time(build_root: Path) -> None:
         encoding="utf-8",
         cwd=str(build_root),
     ).stderr
-    assert not second_run_pants_script_logging
+    assert "Collecting pantsbuild.pants==" not in second_run_pants_script_logging
 
 
 def test_pants_1_16_and_earlier_fails(build_root: Path) -> None:
