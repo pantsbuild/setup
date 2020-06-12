@@ -211,10 +211,5 @@ else
   pants_config_file_flag=--pants-config-files="[\"${PWD}/${pants_config_file}\"]";
 fi
 
-# MacOS's default open files limit is too low for Pants, bump it to something reasonable.
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  ulimit -n 10000
-fi
-
 exec "${pants_dir}/bin/python" "${pants_dir}/bin/pants" \
   "${pants_config_file_flag}" --pants-bin-name="${PANTS_BIN_NAME}" "$@"
