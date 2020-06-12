@@ -193,4 +193,9 @@ pants_dir="$(bootstrap_pants "${pants_version}" "${python}")"
 # See https://blog.phusion.nl/2017/10/13/why-ruby-app-servers-break-on-macos-high-sierra-and-what-can-be-done-about-it/
 export no_proxy='*'
 
+# MacOS's default open files limit is too low for Pants, bump it to something reasonable.
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  ulimit -n 10000
+fi
+
 exec "${pants_dir}/bin/python" "${pants_dir}/bin/pants" "$@"
