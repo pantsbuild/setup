@@ -55,6 +55,7 @@ function get_exe_path_or_die {
   fi
 }
 
+pants_config_file=""
 if [[ -f "${PANTS_INI}" ]]; then
   pants_config_file="${PANTS_INI}"
 fi
@@ -204,12 +205,16 @@ pants_dir="$(bootstrap_pants "${pants_version}" "${python}")"
 # See https://blog.phusion.nl/2017/10/13/why-ruby-app-servers-break-on-macos-high-sierra-and-what-can-be-done-about-it/
 export no_proxy='*'
 
-if [[ -z ${pants_config_file+x} ]]; then
+if [[ -z "${pants_config_file}" ]]; then
   pants_config_file_flag="";
 else
   pants_config_file_flag=--pants-config-files="[\"${PWD}/${pants_config_file}\"]";
 fi
 
-set -x
+# MacOS's default open files limit is too low for Pants, bump it to something reasonable.
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  ulimit -n 10000
+fi
+
 exec "${pants_dir}/bin/python" "${pants_dir}/bin/pants" \
   "${pants_config_file_flag}" --pants-bin-name="${PANTS_BIN_NAME}" "$@"
