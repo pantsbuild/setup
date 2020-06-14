@@ -121,7 +121,6 @@ def test_pants_latest_stable(checker: SanityChecker) -> None:
     )
 
 
-# NB: the first release series to support TOML config files.
-def test_pants_1_26(checker: SanityChecker) -> None:
-    checker.sanity_check(python_version=None, pants_version="1.26.0.dev0")
-    checker.sanity_check_for_all_python_versions("3.6", "3.7", "3.8", pants_version="1.26.0.dev0")
+def test_pants_1_28(checker: SanityChecker) -> None:
+    checker.sanity_check(python_version=None, pants_version="1.28.0")
+    checker.sanity_check_for_all_python_versions("3.6", "3.7", "3.8", pants_version="1.28.0")
