@@ -15,8 +15,12 @@ set -eou pipefail
 
 PYTHON_BIN_NAME="${PYTHON:-unspecified}"
 
+# Set these to specify where this script can read the pants version from.
+# This will also be passed to pants itself as its config file, unless the
+# PANTS_CONFIG_FILES var is already set, in which case we defer to that value.
 PANTS_INI=${PANTS_INI:-pants.ini}
 PANTS_TOML=${PANTS_TOML:-pants.toml}
+
 PANTS_BIN_NAME="${PANTS_BIN_NAME:-$0}"
 
 PANTS_HOME="${PANTS_HOME:-${XDG_CACHE_HOME:-$HOME/.cache}/pants/setup}"
@@ -205,11 +209,8 @@ pants_dir="$(bootstrap_pants "${pants_version}" "${python}")"
 # See https://blog.phusion.nl/2017/10/13/why-ruby-app-servers-break-on-macos-high-sierra-and-what-can-be-done-about-it/
 export no_proxy='*'
 
-if [[ -z "${pants_config_file}" ]]; then
-  pants_config_file_flag="";
-else
-  pants_config_file_flag=--pants-config-files="[\"${PWD}/${pants_config_file}\"]";
+if ! [[ -v PANTS_CONFIG_FILES ]] && [[ -n ${pants_config_file} ]]; then
+  export PANTS_CONFIG_FILES="[\"${PWD}/${pants_config_file}\"]";
 fi
 
-exec "${pants_dir}/bin/python" "${pants_dir}/bin/pants" \
-  "${pants_config_file_flag}" --pants-bin-name="${PANTS_BIN_NAME}" "$@"
+exec "${pants_dir}/bin/python" "${pants_dir}/bin/pants" --pants-bin-name="${PANTS_BIN_NAME}" "$@"
