@@ -8,7 +8,9 @@
 # that any developer can check out your code and be building it with
 # Pants with no prior setup needed.
 #
-# You can learn more here: https://www.pantsbuild.org/install.html
+# It requires your version of pants to be v1.23.0 or newer.
+#
+# You can learn more here: https://pants.readme.io/docs/installation
 # ====================================================================
 
 set -eou pipefail
