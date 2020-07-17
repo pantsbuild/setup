@@ -67,15 +67,6 @@ def test_relative_cache_locations_work(build_root: Path) -> None:
     )
 
 
-def test_pants_1_16_and_earlier_fails(build_root: Path) -> None:
-    create_pants_config(parent_folder=build_root, pants_version="1.16.0", use_toml=False)
-    result = subprocess.run(
-        ["./pants", "--version"], cwd=str(build_root), stderr=subprocess.PIPE, encoding="utf-8"
-    )
-    assert result.returncode != 0
-    assert "does not work with Pants <= 1.16.0" in result.stderr
-
-
 def test_pants_1_22_and_earlier_fails(build_root: Path) -> None:
     create_pants_config(parent_folder=build_root, pants_version="1.22.0", use_toml=False)
     result = subprocess.run(
