@@ -20,7 +20,7 @@ $ tox -e lint
 $ tox -e test
 ```
 
-You may pass through arguments to Pytest:
+You may pass arguments to Pytest like this:
 
 ```bash
 $ tox -e test -- -vv -k test_only_bootstraps_the_first_time
