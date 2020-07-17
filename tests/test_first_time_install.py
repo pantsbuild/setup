@@ -13,7 +13,7 @@ from helpers import create_pants_config
 
 
 def test_venv_name_uses_most_recent_stable_release(build_root: Path) -> None:
-    completed_process = subprocess.run(
+    result = subprocess.run(
         ["./pants", "--version"],
         check=True,
         stdout=subprocess.PIPE,
@@ -23,10 +23,10 @@ def test_venv_name_uses_most_recent_stable_release(build_root: Path) -> None:
     )
     # Pip will resolve the most recent stable release, which will be the output of
     # `./pants --version`.
-    downloaded_version = completed_process.stdout.strip()
+    downloaded_version = result.stdout.strip()
     assert re.search(
         fr"virtual environment successfully created at .*/bootstrap.*/{downloaded_version}_py",
-        completed_process.stderr,
+        result.stderr,
         flags=re.MULTILINE,
     )
 
@@ -50,13 +50,30 @@ def test_only_bootstraps_the_first_time(build_root: Path) -> None:
     assert "Collecting pantsbuild.pants==" not in second_run_pants_script_logging
 
 
-def test_pants_1_16_and_earlier_fails(build_root: Path) -> None:
-    create_pants_config(parent_folder=build_root, pants_version="1.16.0", use_toml=False)
+def test_relative_cache_locations_work(build_root: Path) -> None:
+    result = subprocess.run(
+        ["./pants", "--version"],
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        encoding="utf-8",
+        cwd=str(build_root),
+        env={"PANTS_HOME": "relative_dir"},
+    )
+    assert re.search(
+        r"virtual environment successfully created at .*/relative_dir/bootstrap.*/",
+        result.stderr,
+        flags=re.MULTILINE,
+    )
+
+
+def test_pants_1_22_and_earlier_fails(build_root: Path) -> None:
+    create_pants_config(parent_folder=build_root, pants_version="1.22.0", use_toml=False)
     result = subprocess.run(
         ["./pants", "--version"], cwd=str(build_root), stderr=subprocess.PIPE, encoding="utf-8"
     )
     assert result.returncode != 0
-    assert "does not work with Pants <= 1.16.0" in result.stderr
+    assert "does not work with Pants < 1.23.0" in result.stderr
 
 
 def test_python2_fails(build_root: Path) -> None:

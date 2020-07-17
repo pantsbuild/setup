@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2015 Pants project contributors (see CONTRIBUTORS.md).
+# Copyright 2020 Pants project contributors (see CONTRIBUTORS.md).
 # Licensed under the Apache License, Version 2.0 (see LICENSE).
 
 # =============================== NOTE ===============================
@@ -26,6 +26,11 @@ PANTS_TOML=${PANTS_TOML:-pants.toml}
 PANTS_BIN_NAME="${PANTS_BIN_NAME:-$0}"
 
 PANTS_HOME="${PANTS_HOME:-${XDG_CACHE_HOME:-$HOME/.cache}/pants/setup}"
+# If given a relative path, we fix it to be absolute.
+if [[ "$PANTS_HOME" != /* ]]; then
+  PANTS_HOME="${PWD}/${PANTS_HOME}"
+fi
+
 PANTS_BOOTSTRAP="${PANTS_HOME}/bootstrap-$(uname -s)-$(uname -m)"
 
 VENV_VERSION=${VENV_VERSION:-16.4.3}
@@ -116,8 +121,8 @@ function determine_pants_version {
   fi
   pants_major_version="$(echo "${pants_version}" | cut -d '.' -f1)"
   pants_minor_version="$(echo "${pants_version}" | cut -d '.' -f2)"
-  if [[ "${pants_major_version}" -eq 1 && "${pants_minor_version}" -le 16 ]]; then
-    die "This version of the \`./pants\` script does not work with Pants <= 1.16.0. Instead,
+  if [[ "${pants_major_version}" -eq 1 && "${pants_minor_version}" -lt 23 ]]; then
+    die "This version of the \`./pants\` script does not work with Pants < 1.23.0. Instead,
 either upgrade your \`pants_version\` or use the version of the \`./pants\` script at
 https://raw.githubusercontent.com/pantsbuild/setup/3bb006e4a792ae83d7059ea76c0372ece7c1069d/pants."
   fi
