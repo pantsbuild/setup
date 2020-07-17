@@ -1,8 +1,8 @@
 # Pants setup
 
-This repository contains the bootstrap needed to get you up and running with pants.
+This repository contains the bootstrap needed to get you up and running with Pants.
 
-Follow the instructions at https://www.pantsbuild.org/install.
+Follow the instructions at https://www.pantsbuild.org/docs/installation.
 
 ### Development
 
@@ -18,4 +18,10 @@ You may run certain checks (`environments` in tox) with `tox -e` (run `tox -a` t
 $ tox -e format-run
 $ tox -e lint
 $ tox -e test
+```
+
+You may pass arguments to Pytest like this:
+
+```bash
+$ tox -e test -- -vv -k test_only_bootstraps_the_first_time
 ```

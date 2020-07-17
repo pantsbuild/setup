@@ -37,7 +37,7 @@ def pyenv_versions(pyenv_bin: str) -> List[str]:
 
 
 @dataclass(frozen=True)
-class SanityChecker:
+class SmokeTester:
     pyenv_bin: str
     pyenv_versions: List[str]
     build_root: Path
@@ -79,7 +79,7 @@ class SanityChecker:
                 check=True,
             )
 
-    def sanity_check(
+    def smoke_test(
         self, *, pants_version: Optional[str], python_version: Optional[str], use_toml: bool = True
     ) -> None:
         version_command = ["./pants", "--version"]
@@ -100,27 +100,27 @@ class SanityChecker:
                 run_command(version_command, env=env_with_pantsd)
                 run_command(list_command, env=env_with_pantsd)
 
-    def sanity_check_for_all_python_versions(
+    def smoke_test_for_all_python_versions(
         self, *python_versions: str, pants_version: Optional[str], use_toml: bool = True
     ) -> None:
         for python_version in python_versions:
-            self.sanity_check(
+            self.smoke_test(
                 pants_version=pants_version, python_version=python_version, use_toml=use_toml
             )
 
 
 @pytest.fixture
-def checker(pyenv_bin: str, pyenv_versions: List[str], build_root: Path) -> SanityChecker:
-    return SanityChecker(pyenv_bin=pyenv_bin, pyenv_versions=pyenv_versions, build_root=build_root)
+def checker(pyenv_bin: str, pyenv_versions: List[str], build_root: Path) -> SmokeTester:
+    return SmokeTester(pyenv_bin=pyenv_bin, pyenv_versions=pyenv_versions, build_root=build_root)
 
 
-def test_pants_latest_stable(checker: SanityChecker) -> None:
-    checker.sanity_check(python_version=None, pants_version=None, use_toml=False)
-    checker.sanity_check_for_all_python_versions(
+def test_pants_latest_stable(checker: SmokeTester) -> None:
+    checker.smoke_test(python_version=None, pants_version=None, use_toml=False)
+    checker.smoke_test_for_all_python_versions(
         "3.6", "3.7", "3.8", pants_version=None, use_toml=False
     )
 
 
-def test_pants_1_28(checker: SanityChecker) -> None:
-    checker.sanity_check(python_version=None, pants_version="1.28.0")
-    checker.sanity_check_for_all_python_versions("3.6", "3.7", "3.8", pants_version="1.28.0")
+def test_pants_1_28(checker: SmokeTester) -> None:
+    checker.smoke_test(python_version=None, pants_version="1.28.0")
+    checker.smoke_test_for_all_python_versions("3.6", "3.7", "3.8", pants_version="1.28.0")
