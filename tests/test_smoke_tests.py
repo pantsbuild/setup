@@ -80,8 +80,16 @@ class SmokeTester:
             )
 
     def smoke_test(
-        self, *, pants_version: Optional[str], python_version: Optional[str], use_toml: bool = True
+        self,
+        *,
+        pants_version: Optional[str],
+        python_version: Optional[str],
+        use_toml: bool = True,
+        sha: Optional[str] = None,
     ) -> None:
+        env = {**os.environ}
+        if sha:
+            env["PANTS_SHA"] = sha
         version_command = ["./pants", "--version"]
         list_command = ["./pants", "list", "::"]
         with self._maybe_run_pyenv_local(python_version):
@@ -93,10 +101,10 @@ class SmokeTester:
             def run_command(command: List[str], **kwargs: Any) -> None:
                 subprocess.run(command, check=True, cwd=str(self.build_root), **kwargs)
 
-            run_command(version_command)
-            run_command(list_command)
+            run_command(version_command, env=env)
+            run_command(list_command, env=env)
             if "SKIP_PANTSD_TESTS" not in os.environ:
-                env_with_pantsd = {**os.environ, "PANTS_ENABLE_PANTSD": "True"}
+                env_with_pantsd = {**env, "PANTS_ENABLE_PANTSD": "True"}
                 run_command(version_command, env=env_with_pantsd)
                 run_command(list_command, env=env_with_pantsd)
 
@@ -124,3 +132,9 @@ def test_pants_latest_stable(checker: SmokeTester) -> None:
 def test_pants_1_28(checker: SmokeTester) -> None:
     checker.smoke_test(python_version=None, pants_version="1.28.0")
     checker.smoke_test_for_all_python_versions("3.6", "3.7", "3.8", pants_version="1.28.0")
+
+
+def test_pants_at_sha(checker: SmokeTester) -> None:
+    sha = "7d28019044016673dcc5fa36cd9c0af94151f0de"
+    version = "1.29.0.dev0+git7d280190"
+    checker.smoke_test(python_version=None, pants_version=version, sha=sha)
