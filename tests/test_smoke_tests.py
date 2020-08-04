@@ -135,6 +135,6 @@ def test_pants_1_28(checker: SmokeTester) -> None:
 
 
 def test_pants_at_sha(checker: SmokeTester) -> None:
-    sha = "7d28019044016673dcc5fa36cd9c0af94151f0de"
-    version = "1.29.0.dev0+git7d280190"
+    sha = "41ec94b758aac39c13f59e694fba5ed096a51ba9"
+    version = "2.0.0.dev6+git41ec94b7"
     checker.smoke_test(python_version=None, pants_version=version, sha=sha)

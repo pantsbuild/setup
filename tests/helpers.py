@@ -11,14 +11,18 @@ import toml
 def create_pants_config(
     *, parent_folder: Path, pants_version: Optional[str], use_toml: bool = True
 ) -> None:
-    global_section = (
-        {
-            "pants_version": pants_version,
-            "plugins": ["pantsbuild.pants.contrib.go==%(pants_version)s"],
-        }
-        if pants_version is not None
-        else {"plugins": ["pantsbuild.pants.contrib.go"]}
-    )
+    global_section = {}
+    if pants_version:
+        global_section["pants_version"] = pants_version
+    # NB: string comparison is not always correct for semvers, but it works in the
+    #  cases we care about for testing.
+    if pants_version < "1.29":
+        global_section["plugins"] = (
+            ["pantsbuild.pants.contrib.go==%(pants_version)s"]
+            if pants_version
+            else ["pantsbuild.pants.contrib.go"]
+        )
+
     if use_toml:
         config = {"GLOBAL": global_section}
         # TODO: string interpolation does not work for TOML when the value comes from the same
