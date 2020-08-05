@@ -6,6 +6,7 @@
 import os
 import shutil
 import subprocess
+import textwrap
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
@@ -92,21 +93,34 @@ class SmokeTester:
             env["PANTS_SHA"] = sha
         version_command = ["./pants", "--version"]
         list_command = ["./pants", "list", "::"]
+        binary_command = ["./pants", "binary", "//:bin"]
         with self._maybe_run_pyenv_local(python_version):
             create_pants_config(
                 parent_folder=self.build_root, pants_version=pants_version, use_toml=use_toml
             )
-            (self.build_root / "BUILD").write_text("target(name='test')\n")
+            (self.build_root / "BUILD").write_text(
+                textwrap.dedent(
+                    """
+            target(name='test')
+
+            # To test that we can resolve these, esp. against custom shas.
+            pants_requirement(name='pantsreq')
+            python_binary(name='bin', dependencies=[':pantsreq'])
+            """
+                )
+            )
 
             def run_command(command: List[str], **kwargs: Any) -> None:
                 subprocess.run(command, check=True, cwd=str(self.build_root), **kwargs)
 
             run_command(version_command, env=env)
             run_command(list_command, env=env)
+            run_command(binary_command, env=env)
             if "SKIP_PANTSD_TESTS" not in os.environ:
                 env_with_pantsd = {**env, "PANTS_ENABLE_PANTSD": "True"}
                 run_command(version_command, env=env_with_pantsd)
                 run_command(list_command, env=env_with_pantsd)
+                run_command(binary_command, env=env_with_pantsd)
 
     def smoke_test_for_all_python_versions(
         self, *python_versions: str, pants_version: Optional[str], use_toml: bool = True
@@ -132,6 +146,11 @@ def test_pants_latest_stable(checker: SmokeTester) -> None:
 def test_pants_1_28(checker: SmokeTester) -> None:
     checker.smoke_test(python_version=None, pants_version="1.28.0")
     checker.smoke_test_for_all_python_versions("3.6", "3.7", "3.8", pants_version="1.28.0")
+
+
+def test_pants_2_0(checker: SmokeTester) -> None:
+    checker.smoke_test(python_version=None, pants_version="2.0.0.dev6")
+    checker.smoke_test_for_all_python_versions("3.6", "3.7", "3.8", pants_version="2.0.0.dev6")
 
 
 def test_pants_at_sha(checker: SmokeTester) -> None:
