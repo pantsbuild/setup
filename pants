@@ -203,7 +203,7 @@ function bootstrap_pants {
   if [ -z "${pants_sha}" ]; then
     maybe_find_links=""
   else
-    maybe_find_links=" --find-links=https://binaries.pantsbuild.org/wheels/pantsbuild.pants/${pants_sha}/${pants_version/+/%2B}/index.html"
+    maybe_find_links="--find-links=https://binaries.pantsbuild.org/wheels/pantsbuild.pants/${pants_sha}/${pants_version/+/%2B}/index.html"
    fi
   python_major_minor_version="$(get_python_major_minor_version "${python}")"
   target_folder_name="${pants_version}_py${python_major_minor_version}"
@@ -214,7 +214,8 @@ function bootstrap_pants {
       staging_dir=$(tempdir "${PANTS_BOOTSTRAP}")
       "${python}" "${venv_path}/virtualenv.py" --no-download "${staging_dir}/install"
       "${staging_dir}/install/bin/pip" install -U pip
-      "${staging_dir}/install/bin/pip" install"${maybe_find_links}" --progress-bar off "${pants_requirement}"
+      # We eval to avoid word-splitting issues with maybe_find_links.
+      eval "${staging_dir}/install/bin/pip" install "${maybe_find_links}" --progress-bar off "${pants_requirement}"
       ln -s "${staging_dir}/install" "${staging_dir}/${target_folder_name}"
       mv "${staging_dir}/${target_folder_name}" "${PANTS_BOOTSTRAP}/${target_folder_name}"
       green "New virtual environment successfully created at ${PANTS_BOOTSTRAP}/${target_folder_name}."
