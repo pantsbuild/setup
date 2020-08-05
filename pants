@@ -194,16 +194,23 @@ function bootstrap_venv {
   echo "${PANTS_BOOTSTRAP}/${VENV_PACKAGE}"
 }
 
+function find_links_url {
+  local pants_version="$1"
+  local pants_sha="$2"
+
+  echo -n "https://binaries.pantsbuild.org/wheels/pantsbuild.pants/${pants_sha}/${pants_version/+/%2B}/index.html"
+}
+
 function bootstrap_pants {
   pants_version="$1"
   python="$2"
   pants_sha="${3:-}"
 
   pants_requirement="pantsbuild.pants==${pants_version}"
-  if [ -z "${pants_sha}" ]; then
+  if [[ -z "${pants_sha}" ]]; then
     maybe_find_links=""
   else
-    maybe_find_links="--find-links=https://binaries.pantsbuild.org/wheels/pantsbuild.pants/${pants_sha}/${pants_version/+/%2B}/index.html"
+    maybe_find_links="--find-links=$(find_links_url "${pants_version}" "${pants_sha}")"
    fi
   python_major_minor_version="$(get_python_major_minor_version "${python}")"
   target_folder_name="${pants_version}_py${python_major_minor_version}"
@@ -214,8 +221,8 @@ function bootstrap_pants {
       staging_dir=$(tempdir "${PANTS_BOOTSTRAP}")
       "${python}" "${venv_path}/virtualenv.py" --no-download "${staging_dir}/install"
       "${staging_dir}/install/bin/pip" install -U pip
-      # We eval to avoid word-splitting issues with maybe_find_links.
-      eval "${staging_dir}/install/bin/pip" install "${maybe_find_links}" --progress-bar off "${pants_requirement}"
+      # shellcheck disable=SC2086
+      "${staging_dir}/install/bin/pip" install ${maybe_find_links} --progress-bar off "${pants_requirement}"
       ln -s "${staging_dir}/install" "${staging_dir}/${target_folder_name}"
       mv "${staging_dir}/${target_folder_name}" "${PANTS_BOOTSTRAP}/${target_folder_name}"
       green "New virtual environment successfully created at ${PANTS_BOOTSTRAP}/${target_folder_name}."
@@ -229,9 +236,12 @@ cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 python="$(determine_python_exe)"
 pants_version="$(determine_pants_version "${python}")"
 pants_dir="$(bootstrap_pants "${pants_version}" "${python}" "${PANTS_SHA:-}")"
-
 pants_python="${pants_dir}/bin/python"
 pants_binary="${pants_dir}/bin/pants"
+pants_extra_args=""
+if [[ -n "${PANTS_SHA:-}" ]]; then
+  pants_extra_args="${pants_extra_args} --python-repos-repos=$(find_links_url "$pants_version" "$PANTS_SHA")"
+fi
 
 # We set the env var no_proxy to '*', to work around an issue with urllib using non
 # async-signal-safe syscalls after we fork a process that has already spawned threads.
@@ -239,4 +249,5 @@ pants_binary="${pants_dir}/bin/pants"
 # See https://blog.phusion.nl/2017/10/13/why-ruby-app-servers-break-on-macos-high-sierra-and-what-can-be-done-about-it/
 export no_proxy='*'
 
-exec "${pants_python}" "${pants_binary}" --pants-bin-name="${PANTS_BIN_NAME}" "$@"
+# shellcheck disable=SC2086
+exec "${pants_python}" "${pants_binary}" ${pants_extra_args} --pants-bin-name="${PANTS_BIN_NAME}" "$@"

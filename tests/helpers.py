@@ -3,7 +3,7 @@
 
 import configparser
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, Optional
 
 import toml
 
@@ -14,12 +14,12 @@ def create_pants_config(
     # NB: string comparison is not always correct for semvers, but it works in the
     #  cases we care about for testing.
     no_plugin = pants_version and pants_version >= "1.29"
-    global_section = {}
+    global_section: Dict[str, Any] = {"backend_packages": ["pants.backend.python"]}
     if pants_version:
         global_section["pants_version"] = pants_version
     if not no_plugin:
         global_section["plugins"] = (
-            ["pantsbuild.pants.contrib.go==%(pants_version)s"]  # type: ignore
+            ["pantsbuild.pants.contrib.go==%(pants_version)s"]
             if pants_version
             else ["pantsbuild.pants.contrib.go"]
         )
