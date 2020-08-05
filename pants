@@ -201,9 +201,9 @@ function bootstrap_pants {
 
   pants_requirement="pantsbuild.pants==${pants_version}"
   if [ -z "${pants_sha}" ]; then
-    find_links=""
+    maybe_find_links=""
   else
-    find_links="--find-links=https://binaries.pantsbuild.org/wheels/pantsbuild.pants/${pants_sha}/${pants_version/+/%2B}/index.html"
+    maybe_find_links=" --find-links=https://binaries.pantsbuild.org/wheels/pantsbuild.pants/${pants_sha}/${pants_version/+/%2B}/index.html"
    fi
   python_major_minor_version="$(get_python_major_minor_version "${python}")"
   target_folder_name="${pants_version}_py${python_major_minor_version}"
@@ -214,7 +214,7 @@ function bootstrap_pants {
       staging_dir=$(tempdir "${PANTS_BOOTSTRAP}")
       "${python}" "${venv_path}/virtualenv.py" --no-download "${staging_dir}/install"
       "${staging_dir}/install/bin/pip" install -U pip
-      "${staging_dir}/install/bin/pip" install "${find_links}" --progress-bar off "${pants_requirement}"
+      "${staging_dir}/install/bin/pip" install"${maybe_find_links}" --progress-bar off "${pants_requirement}"
       ln -s "${staging_dir}/install" "${staging_dir}/${target_folder_name}"
       mv "${staging_dir}/${target_folder_name}" "${PANTS_BOOTSTRAP}/${target_folder_name}"
       green "New virtual environment successfully created at ${PANTS_BOOTSTRAP}/${target_folder_name}."
