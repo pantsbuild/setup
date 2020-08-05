@@ -105,7 +105,7 @@ class SmokeTester:
 
             # To test that we can resolve these, esp. against custom shas.
             pants_requirement(name='pantsreq')
-            python_binary(name='bin', dependencies=[':pantsreq'])
+            python_binary(name='bin', dependencies=[':pantsreq'], entry_point='dummy')
             """
                 )
             )
