@@ -21,19 +21,8 @@ PYTHON_BIN_NAME="${PYTHON:-unspecified}"
 PANTS_INI=${PANTS_INI:-pants.ini}
 PANTS_TOML=${PANTS_TOML:-pants.toml}
 
-# NOTE: To use an unreleased version of Pants from the pantsbuild/pants master branch, you need
-#  to select a SHA from the master branch, and determine the version string at that SHA, which is
-#  the release version from src/python/pants/VERSION, plus the string `+gitXXXXXXXX`, where the
-#  XXXXXXXX are the first 8 characters of the SHA.
-#
-#  So, for example, say you pick the SHA 725fdaf504237190f6787dda3d72c39010a4c574.
-#  Then the release version at that SHA is 2.0.0.dev5 (See
-#  https://github.com/pantsbuild/pants/blob/725fdaf504237190f6787dda3d72c39010a4c574/src/python/pants/VERSION)
-#  and therefore the version string to use is `2.0.0.dev5+git725fdaf5`.
-#
-# Then:
-#   1) Set the `version=` key in your config file to that version string.
-#   2) Set PANTS_SHA=<SHA> in the environment and run this script as usual.
+# NOTE: To use an unreleased version of Pants from the pantsbuild/pants master branch,
+#  locate the master branch SHA, set PANTS_SHA=<SHA> in the environment, and run this script as usual.
 #
 # E.g., PANTS_SHA=725fdaf504237190f6787dda3d72c39010a4c574 ./pants --version
 
@@ -126,6 +115,12 @@ EOF
 # are installed and up to date.
 
 function determine_pants_version {
+
+  if [ -n "${PANTS_SHA:-}" ]; then
+    get_version_for_sha "$PANTS_SHA"
+    return
+  fi
+
   python="$1"
 
   pants_version="$(get_pants_config_value 'pants_version')"
@@ -201,6 +196,18 @@ function find_links_url {
   echo -n "https://binaries.pantsbuild.org/wheels/pantsbuild.pants/${pants_sha}/${pants_version/+/%2B}/index.html"
 }
 
+function get_version_for_sha {
+  local sha="$1"
+
+  # Retrieve the Pants version associated with this commit.
+  local pants_version
+  pants_version="$(curl --fail -sL "https://raw.githubusercontent.com/pantsbuild/pants/${sha}/src/python/pants/VERSION")"
+
+  # Construct the version as the release version from src/python/pants/VERSION, plus the string `+gitXXXXXXXX`,
+  # where the XXXXXXXX is the first 8 characters of the SHA.
+  echo "${pants_version}+git${sha:0:8}"
+}
+
 function bootstrap_pants {
   pants_version="$1"
   python="$2"
@@ -219,12 +226,12 @@ function bootstrap_pants {
     (
       venv_path="$(bootstrap_venv)"
       staging_dir=$(tempdir "${PANTS_BOOTSTRAP}")
-      "${python}" "${venv_path}/virtualenv.py" --no-download "${staging_dir}/install"
-      "${staging_dir}/install/bin/pip" install -U pip
       # shellcheck disable=SC2086
-      "${staging_dir}/install/bin/pip" install ${maybe_find_links} --progress-bar off "${pants_requirement}"
-      ln -s "${staging_dir}/install" "${staging_dir}/${target_folder_name}"
-      mv "${staging_dir}/${target_folder_name}" "${PANTS_BOOTSTRAP}/${target_folder_name}"
+      "${python}" "${venv_path}/virtualenv.py" --no-download "${staging_dir}/install" && \
+      "${staging_dir}/install/bin/pip" install -U pip && \
+      "${staging_dir}/install/bin/pip" install ${maybe_find_links} --progress-bar off "${pants_requirement}" && \
+      ln -s "${staging_dir}/install" "${staging_dir}/${target_folder_name}" && \
+      mv "${staging_dir}/${target_folder_name}" "${PANTS_BOOTSTRAP}/${target_folder_name}" && \
       green "New virtual environment successfully created at ${PANTS_BOOTSTRAP}/${target_folder_name}."
     ) 1>&2
   fi
@@ -250,4 +257,5 @@ fi
 export no_proxy='*'
 
 # shellcheck disable=SC2086
-exec "${pants_python}" "${pants_binary}" ${pants_extra_args} --pants-bin-name="${PANTS_BIN_NAME}" "$@"
+exec "${pants_python}" "${pants_binary}" ${pants_extra_args} \
+  --pants-bin-name="${PANTS_BIN_NAME}" --pants-version=${pants_version} "$@"
