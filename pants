@@ -117,6 +117,7 @@ EOF
 function determine_pants_version {
 
   if [ -n "${PANTS_SHA:-}" ]; then
+    # get_version_for_sha will echo the version, thus "returning" it from this function.
     get_version_for_sha "$PANTS_SHA"
     return
   fi
