@@ -83,7 +83,7 @@ class SmokeTester:
     def smoke_test(
         self,
         *,
-        pants_version: Optional[str],
+        pants_version: str,
         python_version: Optional[str],
         use_toml: bool = True,
         sha: Optional[str] = None,
@@ -136,21 +136,14 @@ def checker(pyenv_bin: str, pyenv_versions: List[str], build_root: Path) -> Smok
     return SmokeTester(pyenv_bin=pyenv_bin, pyenv_versions=pyenv_versions, build_root=build_root)
 
 
-def test_pants_latest_stable(checker: SmokeTester) -> None:
-    checker.smoke_test(python_version=None, pants_version=None, use_toml=False)
-    checker.smoke_test_for_all_python_versions(
-        "3.6", "3.7", "3.8", pants_version=None, use_toml=False
-    )
-
-
 def test_pants_1_28(checker: SmokeTester) -> None:
     checker.smoke_test(python_version=None, pants_version="1.28.0")
     checker.smoke_test_for_all_python_versions("3.6", "3.7", "3.8", pants_version="1.28.0")
 
 
 def test_pants_2_0(checker: SmokeTester) -> None:
-    checker.smoke_test(python_version=None, pants_version="2.0.0.dev6")
-    checker.smoke_test_for_all_python_versions("3.6", "3.7", "3.8", pants_version="2.0.0.dev6")
+    checker.smoke_test(python_version=None, pants_version="2.0.0b1")
+    checker.smoke_test_for_all_python_versions("3.6", "3.7", "3.8", pants_version="2.0.0b1")
 
 
 def test_pants_at_sha(checker: SmokeTester) -> None:
