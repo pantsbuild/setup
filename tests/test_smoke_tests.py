@@ -123,7 +123,7 @@ class SmokeTester:
                 run_command(binary_command, env=env_with_pantsd)
 
     def smoke_test_for_all_python_versions(
-        self, *python_versions: str, pants_version: Optional[str], use_toml: bool = True
+        self, *python_versions: str, pants_version: str, use_toml: bool = True
     ) -> None:
         for python_version in python_versions:
             self.smoke_test(
