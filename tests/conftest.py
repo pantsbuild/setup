@@ -33,7 +33,7 @@ class MonkeyPatch(Protocol):
 
 @pytest.fixture
 def build_root(project_root: PurePath, tmp_path: Path, monkeypatch: MonkeyPatch) -> Path:
-    monkeypatch.setenv("PANTS_HOME", str(tmp_path / "PANTS_HOME"))
+    monkeypatch.setenv("PANTS_SETUP_CACHE", str(tmp_path / "PANTS_SETUP_CACHE"))
 
     # NB: Unlike the install guide's instruction to curl the `./pants` script, we directly
     # copy it to ensure we are using the branch's version of the script and to avoid

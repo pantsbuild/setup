@@ -41,7 +41,7 @@ def test_relative_cache_locations_work(build_root: Path) -> None:
         stderr=subprocess.PIPE,
         encoding="utf-8",
         cwd=str(build_root),
-        env={**os.environ, "PANTS_HOME": "relative_dir"},
+        env={**os.environ, "PANTS_SETUP_CACHE": "relative_dir"},
     )
     assert re.search(
         r"virtual environment successfully created at .*/relative_dir/bootstrap.*/",
