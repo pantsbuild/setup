@@ -28,13 +28,13 @@ PANTS_TOML=${PANTS_TOML:-pants.toml}
 
 PANTS_BIN_NAME="${PANTS_BIN_NAME:-$0}"
 
-PANTS_HOME="${PANTS_HOME:-${XDG_CACHE_HOME:-$HOME/.cache}/pants/setup}"
+PANTS_SETUP_CACHE="${PANTS_SETUP_CACHE:-${XDG_CACHE_HOME:-$HOME/.cache}/pants/setup}"
 # If given a relative path, we fix it to be absolute.
-if [[ "$PANTS_HOME" != /* ]]; then
-  PANTS_HOME="${PWD}/${PANTS_HOME}"
+if [[ "$PANTS_SETUP_CACHE" != /* ]]; then
+  PANTS_SETUP_CACHE="${PWD}/${PANTS_SETUP_CACHE}"
 fi
 
-PANTS_BOOTSTRAP="${PANTS_HOME}/bootstrap-$(uname -s)-$(uname -m)"
+PANTS_BOOTSTRAP="${PANTS_SETUP_CACHE}/bootstrap-$(uname -s)-$(uname -m)"
 
 VENV_VERSION=${VENV_VERSION:-16.4.3}
 
