@@ -13,18 +13,17 @@
 
 set -eou pipefail
 
-PYTHON_BIN_NAME="${PYTHON:-unspecified}"
-
-# Set one of these to specify a non-standard location for this script to read the pants version from.
-# NB: This will *not* cause Pants itself to use this location as a config file.
-#     You can use PANTS_CONFIG_FILES or --pants-config-files to do so.
-PANTS_INI=${PANTS_INI:-pants.ini}
-PANTS_TOML=${PANTS_TOML:-pants.toml}
-
 # NOTE: To use an unreleased version of Pants from the pantsbuild/pants master branch,
 #  locate the master branch SHA, set PANTS_SHA=<SHA> in the environment, and run this script as usual.
 #
 # E.g., PANTS_SHA=725fdaf504237190f6787dda3d72c39010a4c574 ./pants --version
+
+PYTHON_BIN_NAME="${PYTHON:-unspecified}"
+
+# Set this to specify a non-standard location for this script to read the Pants version from.
+# NB: This will *not* cause Pants itself to use this location as a config file.
+#     You can use PANTS_CONFIG_FILES or --pants-config-files to do so.
+PANTS_TOML=${PANTS_TOML:-pants.toml}
 
 PANTS_BIN_NAME="${PANTS_BIN_NAME:-$0}"
 
@@ -69,27 +68,12 @@ function get_exe_path_or_die {
   fi
 }
 
-pants_config_file=""
-if [[ -f "${PANTS_INI}" ]]; then
-  pants_config_file="${PANTS_INI}"
-fi
-if [[ -f "${PANTS_TOML}" ]]; then
-  pants_config_file="${PANTS_TOML}"
-fi
-
 function get_pants_config_value {
   config_key="$1"
   optional_space="[[:space:]]*"
-  if [[ "${pants_config_file}" == *.ini ]]; then
-    valid_delimiters="[:=]"
-    prefix="^${config_key}${optional_space}${valid_delimiters}${optional_space}"
-    sed -ne "/${prefix}/ s#${prefix}##p" "${PANTS_INI}" && return 0
-  fi
-  if [[ "${pants_config_file}" == *.toml ]]; then
-    prefix="^${config_key}${optional_space}=${optional_space}"
-    raw_value="$(sed -ne "/${prefix}/ s#${prefix}##p" "${PANTS_TOML}")"
-    echo "${raw_value}"  | tr -d \"\' && return 0
-  fi
+  prefix="^${config_key}${optional_space}=${optional_space}"
+  raw_value="$(sed -ne "/${prefix}/ s#${prefix}##p" "${PANTS_TOML}")"
+  echo "${raw_value}"  | tr -d \"\' && return 0
   return 0
 }
 
