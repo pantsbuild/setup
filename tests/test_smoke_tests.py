@@ -85,7 +85,6 @@ class SmokeTester:
         *,
         pants_version: str,
         python_version: Optional[str],
-        use_toml: bool = True,
         sha: Optional[str] = None,
     ) -> None:
         env = {**os.environ}
@@ -95,18 +94,16 @@ class SmokeTester:
         list_command = ["./pants", "list", "::"]
         binary_command = ["./pants", "binary", "//:bin"]
         with self._maybe_run_pyenv_local(python_version):
-            create_pants_config(
-                parent_folder=self.build_root, pants_version=pants_version, use_toml=use_toml
-            )
+            create_pants_config(parent_folder=self.build_root, pants_version=pants_version)
             (self.build_root / "BUILD").write_text(
                 textwrap.dedent(
                     """
-            target(name='test')
+                    target(name='test')
 
-            # To test that we can resolve these, esp. against custom shas.
-            pants_requirement(name='pantsreq')
-            python_binary(name='bin', dependencies=[':pantsreq'], entry_point='dummy')
-            """
+                    # To test that we can resolve these, esp. against custom shas.
+                    pants_requirement(name='pantsreq')
+                    python_binary(name='bin', dependencies=[':pantsreq'], entry_point='dummy')
+                    """
                 )
             )
 
@@ -122,13 +119,9 @@ class SmokeTester:
                 run_command(list_command, env=env_with_pantsd)
                 run_command(binary_command, env=env_with_pantsd)
 
-    def smoke_test_for_all_python_versions(
-        self, *python_versions: str, pants_version: str, use_toml: bool = True
-    ) -> None:
+    def smoke_test_for_all_python_versions(self, *python_versions: str, pants_version: str) -> None:
         for python_version in python_versions:
-            self.smoke_test(
-                pants_version=pants_version, python_version=python_version, use_toml=use_toml
-            )
+            self.smoke_test(pants_version=pants_version, python_version=python_version)
 
 
 @pytest.fixture

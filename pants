@@ -115,10 +115,11 @@ versions and https://www.pantsbuild.org/docs/installation for more instructions.
   fi
   pants_major_version="$(echo "${pants_version}" | cut -d '.' -f1)"
   pants_minor_version="$(echo "${pants_version}" | cut -d '.' -f2)"
-  if [[ "${pants_major_version}" -eq 1 && "${pants_minor_version}" -le 22 ]]; then
-    die "This version of the \`./pants\` script does not work with Pants <= 1.22.0. Instead,
-either upgrade your \`pants_version\` or use the version of the \`./pants\` script at
-https://raw.githubusercontent.com/pantsbuild/setup/d1da382f6de0420940ec6007a39cba87c21075c6/pants."
+  # 1.26 is the first version to support `pants.toml`, so we fail eagerly if using an outdated version.
+  if [[ "${pants_major_version}" -eq 1 && "${pants_minor_version}" -le 25 ]]; then
+    die "This version of the \`./pants\` script does not work with Pants <= 1.25.0 (and it also requires using \`pants.toml\`,
+rather than \`pants.ini\`). Instead, either upgrade your \`pants_version\` or use the version of the \`./pants\` script
+at https://raw.githubusercontent.com/Eric-Arellano/setup/0d445edef57cb89fd830db70810e38f050b0a268/pants."
   fi
   echo "${pants_version}"
 }
