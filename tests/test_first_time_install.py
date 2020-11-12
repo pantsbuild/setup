@@ -81,4 +81,8 @@ def test_python2_fails(build_root: Path) -> None:
         env={**os.environ, "PYTHON": "python2"},
     )
     assert result.returncode != 0
-    assert "Pants requires Python 3.6+ to run" in result.stderr
+    # For 1.30.x, we expect this message.
+    assert (
+        'For `pants_version = "1.30.1"`, Pants requires Python 3.6, 3.7, or 3.8 to run.'
+        in result.stderr
+    )
