@@ -34,7 +34,7 @@ fi
 
 PANTS_BOOTSTRAP="${PANTS_SETUP_CACHE}/bootstrap-$(uname -s)-$(uname -m)"
 
-VENV_VERSION=${VENV_VERSION:-20.2.2}
+VENV_VERSION=${VENV_VERSION:-16.4.3}
 
 VENV_PACKAGE=virtualenv-${VENV_VERSION}
 VENV_TARBALL=${VENV_PACKAGE}.tar.gz
@@ -204,20 +204,7 @@ function bootstrap_venv {
       mv "${staging_dir}/latest" "${PANTS_BOOTSTRAP}/${VENV_PACKAGE}"
     ) 1>&2
   fi
-
-  local venv_path="${PANTS_BOOTSTRAP}/${VENV_PACKAGE}"
-  local venv_entry_point
-
-  # shellcheck disable=SC2086
-  if [[ -f "${venv_path}/virtualenv.py" ]]; then
-    venv_entry_point="${venv_path}/virtualenv.py"
-  elif [[ -f "${venv_path}/src/virtualenv/__main__.py" ]]; then
-    venv_entry_point="${venv_path}/src/virtualenv/__main__.py"
-  else
-    die "Could not find virtualenv entry point for version $VENV_VERSION"
-  fi
-
-  echo "${venv_entry_point}"
+  echo "${PANTS_BOOTSTRAP}/${VENV_PACKAGE}"
 }
 
 function find_links_url {
@@ -257,10 +244,12 @@ function bootstrap_pants {
 
   if [[ ! -d "${PANTS_BOOTSTRAP}/${target_folder_name}" ]]; then
     (
-      local venv_entry_point="$(bootstrap_venv)"
+      local venv_path
+      venv_path="$(bootstrap_venv)"
       local staging_dir
       staging_dir=$(tempdir "${PANTS_BOOTSTRAP}")
-      "${python}" "${venv_entry_point}" --no-download "${staging_dir}/install" && \
+      # shellcheck disable=SC2086
+      "${python}" "${venv_path}/virtualenv.py" --no-download "${staging_dir}/install" && \
       "${staging_dir}/install/bin/pip" install -U pip && \
       "${staging_dir}/install/bin/pip" install ${maybe_find_links} --progress-bar off "${pants_requirement}" && \
       ln -s "${staging_dir}/install" "${staging_dir}/${target_folder_name}" && \
