@@ -129,14 +129,14 @@ def checker(pyenv_bin: str, pyenv_versions: List[str], build_root: Path) -> Smok
     return SmokeTester(pyenv_bin=pyenv_bin, pyenv_versions=pyenv_versions, build_root=build_root)
 
 
-def test_pants_1_28(checker: SmokeTester) -> None:
-    checker.smoke_test(python_version=None, pants_version="1.28.0")
-    checker.smoke_test_for_all_python_versions("3.6", "3.7", "3.8", pants_version="1.28.0")
+def test_pants_1(checker: SmokeTester) -> None:
+    checker.smoke_test(python_version=None, pants_version="1.30.4")
+    checker.smoke_test_for_all_python_versions("3.6", "3.7", "3.8", pants_version="1.30.4")
 
 
-def test_pants_2_0(checker: SmokeTester) -> None:
-    checker.smoke_test(python_version=None, pants_version="2.0.0b1")
-    checker.smoke_test_for_all_python_versions("3.6", "3.7", "3.8", pants_version="2.0.0b1")
+def test_pants_2(checker: SmokeTester) -> None:
+    checker.smoke_test(python_version=None, pants_version="2.3.0")
+    checker.smoke_test_for_all_python_versions("3.7", "3.8", pants_version="2.3.0")
 
 
 def test_pants_at_sha(checker: SmokeTester) -> None:
