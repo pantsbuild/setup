@@ -6,7 +6,6 @@
 import os
 import shutil
 import subprocess
-import textwrap
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
@@ -92,38 +91,19 @@ class SmokeTester:
             env["PANTS_SHA"] = sha
         version_command = ["./pants", "--version"]
         list_command = ["./pants", "list", "::"]
-        if pants_version.startswith("1"):
-            goal = "binary"
-            tgt_type = "python_binary"
-        else:
-            goal = "package"
-            tgt_type = "pex_binary"
-        binary_command = ["./pants", goal, "//:bin"]
         with self._maybe_run_pyenv_local(python_version):
             create_pants_config(parent_folder=self.build_root, pants_version=pants_version)
-            (self.build_root / "BUILD").write_text(
-                textwrap.dedent(
-                    f"""
-                    target(name='test')
-
-                    # To test that we can resolve these, esp. against custom shas.
-                    pants_requirement(name='pantsreq')
-                    {tgt_type}(name='bin', dependencies=[':pantsreq'], entry_point='fake')
-                    """
-                )
-            )
+            (self.build_root / "BUILD").write_text("target(name='test')")
 
             def run_command(command: List[str], **kwargs: Any) -> None:
                 subprocess.run(command, check=True, cwd=str(self.build_root), **kwargs)
 
             run_command(version_command, env=env)
             run_command(list_command, env=env)
-            run_command(binary_command, env=env)
             if "SKIP_PANTSD_TESTS" not in os.environ:
                 env_with_pantsd = {**env, "PANTS_ENABLE_PANTSD": "True"}
                 run_command(version_command, env=env_with_pantsd)
                 run_command(list_command, env=env_with_pantsd)
-                run_command(binary_command, env=env_with_pantsd)
 
     def smoke_test_for_all_python_versions(self, *python_versions: str, pants_version: str) -> None:
         for python_version in python_versions:
@@ -146,6 +126,6 @@ def test_pants_2(checker: SmokeTester) -> None:
 
 
 def test_pants_at_sha(checker: SmokeTester) -> None:
-    sha = "41ec94b758aac39c13f59e694fba5ed096a51ba9"
-    version = "2.0.0.dev6+git41ec94b7"
+    sha = "e4a00eb2750d00371cfe1d438c872ec3ea926369"
+    version = "2.3.0.dev6+gite4a00eb"
     checker.smoke_test(python_version=None, pants_version=version, sha=sha)
