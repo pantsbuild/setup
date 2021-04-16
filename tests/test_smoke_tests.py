@@ -92,8 +92,13 @@ class SmokeTester:
             env["PANTS_SHA"] = sha
         version_command = ["./pants", "--version"]
         list_command = ["./pants", "list", "::"]
-        binary_command = ["./pants", "binary", "//:bin"]
-        binary_tgt_name = "python_binary" if pants_version.startswith("1") else "pex_binary"
+        if pants_version.startswith("1"):
+            goal = "binary"
+            tgt_type = "python_binary"
+        else:
+            goal = "package"
+            tgt_type = "pex_binary"
+        binary_command = ["./pants", goal, "//:bin"]
         with self._maybe_run_pyenv_local(python_version):
             create_pants_config(parent_folder=self.build_root, pants_version=pants_version)
             (self.build_root / "BUILD").write_text(
@@ -103,7 +108,7 @@ class SmokeTester:
 
                     # To test that we can resolve these, esp. against custom shas.
                     pants_requirement(name='pantsreq')
-                    {binary_tgt_name}(name='bin', dependencies=[':pantsreq'], entry_point='fake')
+                    {tgt_type}(name='bin', dependencies=[':pantsreq'], entry_point='fake')
                     """
                 )
             )
