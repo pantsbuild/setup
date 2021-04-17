@@ -92,17 +92,26 @@ class SmokeTester:
             env["PANTS_SHA"] = sha
         version_command = ["./pants", "--version"]
         list_command = ["./pants", "list", "::"]
-        binary_command = ["./pants", "binary", "//:bin"]
+        if pants_version.startswith("1"):
+            goal = "binary"
+            tgt_type = "python_binary"
+        else:
+            goal = "package"
+            tgt_type = "pex_binary"
+            # Force the pex_binary to use this interpreter constraint so that pantsbuild.pants is
+            # resolvable via the pants_requirement().
+            env["PANTS_PYTHON_SETUP_INTERPRETER_CONSTRAINTS"] = "['==3.7.*']"
+        binary_command = ["./pants", goal, "//:bin"]
         with self._maybe_run_pyenv_local(python_version):
             create_pants_config(parent_folder=self.build_root, pants_version=pants_version)
             (self.build_root / "BUILD").write_text(
                 textwrap.dedent(
-                    """
+                    f"""
                     target(name='test')
 
                     # To test that we can resolve these, esp. against custom shas.
                     pants_requirement(name='pantsreq')
-                    python_binary(name='bin', dependencies=[':pantsreq'], entry_point='dummy')
+                    {tgt_type}(name='bin', dependencies=[':pantsreq'], entry_point='fake')
                     """
                 )
             )
@@ -129,17 +138,17 @@ def checker(pyenv_bin: str, pyenv_versions: List[str], build_root: Path) -> Smok
     return SmokeTester(pyenv_bin=pyenv_bin, pyenv_versions=pyenv_versions, build_root=build_root)
 
 
-def test_pants_1_28(checker: SmokeTester) -> None:
-    checker.smoke_test(python_version=None, pants_version="1.28.0")
-    checker.smoke_test_for_all_python_versions("3.6", "3.7", "3.8", pants_version="1.28.0")
+def test_pants_1(checker: SmokeTester) -> None:
+    checker.smoke_test(python_version=None, pants_version="1.30.4")
+    checker.smoke_test_for_all_python_versions("3.6", "3.7", "3.8", pants_version="1.30.4")
 
 
-def test_pants_2_0(checker: SmokeTester) -> None:
-    checker.smoke_test(python_version=None, pants_version="2.0.0b1")
-    checker.smoke_test_for_all_python_versions("3.6", "3.7", "3.8", pants_version="2.0.0b1")
+def test_pants_2(checker: SmokeTester) -> None:
+    checker.smoke_test(python_version=None, pants_version="2.3.0")
+    checker.smoke_test_for_all_python_versions("3.7", "3.8", pants_version="2.3.0")
 
 
 def test_pants_at_sha(checker: SmokeTester) -> None:
-    sha = "41ec94b758aac39c13f59e694fba5ed096a51ba9"
-    version = "2.0.0.dev6+git41ec94b7"
+    sha = "e4a00eb2750d00371cfe1d438c872ec3ea926369"
+    version = "2.3.0.dev6+gite4a00eb"
     checker.smoke_test(python_version=None, pants_version=version, sha=sha)
