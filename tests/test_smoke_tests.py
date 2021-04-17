@@ -98,6 +98,9 @@ class SmokeTester:
         else:
             goal = "package"
             tgt_type = "pex_binary"
+            # Force the pex_binary to use this interpreter constraint so that pantsbuild.pants is
+            # resolvable via the pants_requirement().
+            env["PANTS_PYTHON_SETUP_INTERPRETER_CONSTRAINTS"] = "['==3.7.*']"
         binary_command = ["./pants", goal, "//:bin"]
         with self._maybe_run_pyenv_local(python_version):
             create_pants_config(parent_folder=self.build_root, pants_version=pants_version)
