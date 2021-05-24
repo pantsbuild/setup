@@ -34,11 +34,6 @@ fi
 
 PANTS_BOOTSTRAP="${PANTS_SETUP_CACHE}/bootstrap-$(uname -s)-$(uname -m)"
 
-VENV_VERSION=${VENV_VERSION:-16.4.3}
-
-VENV_PACKAGE=virtualenv-${VENV_VERSION}
-VENV_TARBALL=${VENV_PACKAGE}.tar.gz
-
 COLOR_RED="\x1b[31m"
 COLOR_GREEN="\x1b[32m"
 COLOR_RESET="\x1b[0m"
@@ -57,6 +52,7 @@ function green() {
 }
 
 function tempdir {
+  mkdir -p "$1"
   mktemp -d "$1"/pants.XXXXXX
 }
 
@@ -197,22 +193,6 @@ function determine_python_exe {
 # TODO(John Sirois): GC race loser tmp dirs leftover from bootstrap_XXX
 # functions.  Any tmp dir w/o a symlink pointing to it can go.
 
-function bootstrap_venv {
-  if [[ ! -d "${PANTS_BOOTSTRAP}/${VENV_PACKAGE}" ]]; then
-    (
-      mkdir -p "${PANTS_BOOTSTRAP}"
-      local staging_dir
-      staging_dir=$(tempdir "${PANTS_BOOTSTRAP}")
-      cd "${staging_dir}"
-      curl -LO "https://pypi.io/packages/source/v/virtualenv/${VENV_TARBALL}"
-      tar -xzf "${VENV_TARBALL}"
-      ln -s "${staging_dir}/${VENV_PACKAGE}" "${staging_dir}/latest"
-      mv "${staging_dir}/latest" "${PANTS_BOOTSTRAP}/${VENV_PACKAGE}"
-    ) 1>&2
-  fi
-  echo "${PANTS_BOOTSTRAP}/${VENV_PACKAGE}"
-}
-
 function find_links_url {
   local pants_version="$1"
   local pants_sha="$2"
@@ -250,12 +230,10 @@ function bootstrap_pants {
 
   if [[ ! -d "${PANTS_BOOTSTRAP}/${target_folder_name}" ]]; then
     (
-      local venv_path
-      venv_path="$(bootstrap_venv)"
       local staging_dir
       staging_dir=$(tempdir "${PANTS_BOOTSTRAP}")
       # shellcheck disable=SC2086
-      "${python}" "${venv_path}/virtualenv.py" --no-download "${staging_dir}/install" && \
+      "${python}" -m venv "${staging_dir}/install" && \
       "${staging_dir}/install/bin/pip" install -U pip && \
       "${staging_dir}/install/bin/pip" install ${maybe_find_links} --progress-bar off "${pants_requirement}" && \
       ln -s "${staging_dir}/install" "${staging_dir}/${target_folder_name}" && \
