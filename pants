@@ -40,6 +40,7 @@ PANTS_BOOTSTRAP="${PANTS_SETUP_CACHE}/bootstrap-$(uname -s)-$(uname -m)"
 # See https://virtualenv.pypa.io/en/latest/installation.html#via-zipapp
 VIRTUALENV_ZIPAPP=virtualenv.pyz
 VIRTUALENV_ZIPAPP_URL="https://bootstrap.pypa.io/virtualenv/3.6/${VIRTUALENV_ZIPAPP}"
+VIRTUALENV_ZIPAPP_EXPECTED_SHA256="9d5c8b09cdeaf44414f07902d2ae45c4bb8a2085717d66f82ae389a9c6f94425"
 
 COLOR_RED="\x1b[31m"
 COLOR_GREEN="\x1b[32m"
@@ -110,9 +111,9 @@ function determine_pants_version {
 
   pants_version="$(get_pants_config_value 'pants_version')"
   if [[ -z "${pants_version}" ]]; then
-    die "Please explicitly specify the \`pants_version\` in your \`pants.toml\` under the
-\`[GLOBAL]\` scope. See https://pypi.org/project/pantsbuild.pants/#history for all released
-versions and https://www.pantsbuild.org/docs/installation for more instructions."
+    die "Please explicitly specify the \`pants_version\` in your \`pants.toml\` under the \`[GLOBAL]\` scope.
+See https://pypi.org/project/pantsbuild.pants/#history for all released versions
+and https://www.pantsbuild.org/docs/installation for more instructions."
   fi
   pants_major_version="$(echo "${pants_version}" | cut -d '.' -f1)"
   pants_minor_version="$(echo "${pants_version}" | cut -d '.' -f2)"
@@ -186,7 +187,7 @@ function determine_python_exe {
     fi
   fi
   local python_exe
-  python_exe="$(get_exe_path_or_die "${python_bin_name}")"
+  python_exe="$(get_exe_path_or_die "${python_bin_name}")" || exit 1
   local major_minor_version
   major_minor_version="$(get_python_major_minor_version "${python_exe}")"
   for valid_version in "${supported_python_versions_int[@]}"; do
@@ -209,9 +210,14 @@ function bootstrap_virtualenv {
       staging_dir=$(tempdir "${PANTS_BOOTSTRAP}")
       cd "${staging_dir}"
       curl -LO "${VIRTUALENV_ZIPAPP_URL}"
+      fingerprint="$(shasum -a 256 "${VIRTUALENV_ZIPAPP}" | cut -d' ' -f1)"
+      if [[ "${VIRTUALENV_ZIPAPP_EXPECTED_SHA256}" != "${fingerprint}" ]]; then
+        die "SHA256 of ${staging_dir}/${VIRTUALENV_ZIPAPP} is not as expected. Aborting."
+      fi
       ln -s "${staging_dir}/${VIRTUALENV_ZIPAPP}" "${staging_dir}/latest"
       mv "${staging_dir}/latest" "${PANTS_BOOTSTRAP}/${VIRTUALENV_ZIPAPP}"
-    ) 1>&2
+      green "SHA256 fingerprint of "${PANTS_BOOTSTRAP}/${VIRTUALENV_ZIPAPP}" verified."
+    ) 1>&2 || exit 1
   fi
   echo "${PANTS_BOOTSTRAP}/${VIRTUALENV_ZIPAPP}"
 }
@@ -265,7 +271,7 @@ function bootstrap_pants {
         # The venv module is not available, so download and use the virtualenv zipapp.
         green "${python} does not have the venv module avilable, using virtualenv instead."
         local virtualenv_path
-        virtualenv_path="$(bootstrap_virtualenv)"
+        virtualenv_path="$(bootstrap_virtualenv)" || exit 1
         virtualenv_cmd="${python} ${virtualenv_path} --no-download"
       fi
 
@@ -277,7 +283,7 @@ function bootstrap_pants {
       ln -s "${staging_dir}/install" "${staging_dir}/${target_folder_name}" && \
       mv "${staging_dir}/${target_folder_name}" "${PANTS_BOOTSTRAP}/${target_folder_name}" && \
       green "New virtual environment successfully created at ${PANTS_BOOTSTRAP}/${target_folder_name}."
-    ) 1>&2
+    ) 1>&2 || exit 1
   fi
   echo "${PANTS_BOOTSTRAP}/${target_folder_name}"
 }
@@ -286,7 +292,8 @@ function bootstrap_pants {
 cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 pants_version="$(determine_pants_version)"
 python="$(determine_python_exe "${pants_version}")"
-pants_dir="$(bootstrap_pants "${pants_version}" "${python}" "${PANTS_SHA:-}")"
+pants_dir="$(bootstrap_pants "${pants_version}" "${python}" "${PANTS_SHA:-}")" || exit 1
+
 pants_python="${pants_dir}/bin/python"
 pants_binary="${pants_dir}/bin/pants"
 pants_extra_args=""
