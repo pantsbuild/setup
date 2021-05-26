@@ -34,6 +34,13 @@ fi
 
 PANTS_BOOTSTRAP="${PANTS_SETUP_CACHE}/bootstrap-$(uname -s)-$(uname -m)"
 
+# Note that this URL points to the zipapp for the latest version of virtualenv
+# that supports the Python version specified in the URL. So it can be set to
+# the lowest version of Python we support running Pants on.
+# See https://virtualenv.pypa.io/en/latest/installation.html#via-zipapp
+VIRTUALENV_ZIPAPP=virtualenv.pyz
+VIRTUALENV_ZIPAPP_URL="https://bootstrap.pypa.io/virtualenv/3.6/${VIRTUALENV_ZIPAPP}"
+
 COLOR_RED="\x1b[31m"
 COLOR_GREEN="\x1b[32m"
 COLOR_RESET="\x1b[0m"
@@ -193,6 +200,22 @@ function determine_python_exe {
 # TODO(John Sirois): GC race loser tmp dirs leftover from bootstrap_XXX
 # functions.  Any tmp dir w/o a symlink pointing to it can go.
 
+function bootstrap_virtualenv {
+  if [[ ! -d "${PANTS_BOOTSTRAP}/${VIRTUALENV_ZIPAPP}" ]]; then
+    (
+      green "Downloading the virtualenv zipapp"
+      mkdir -p "${PANTS_BOOTSTRAP}"
+      local staging_dir
+      staging_dir=$(tempdir "${PANTS_BOOTSTRAP}")
+      cd "${staging_dir}"
+      curl -LO "${VIRTUALENV_ZIPAPP_URL}"
+      ln -s "${staging_dir}/${VIRTUALENV_ZIPAPP}" "${staging_dir}/latest"
+      mv "${staging_dir}/latest" "${PANTS_BOOTSTRAP}/${VIRTUALENV_ZIPAPP}"
+    ) 1>&2
+  fi
+  echo "${PANTS_BOOTSTRAP}/${VIRTUALENV_ZIPAPP}"
+}
+
 function find_links_url {
   local pants_version="$1"
   local pants_sha="$2"
@@ -230,10 +253,25 @@ function bootstrap_pants {
 
   if [[ ! -d "${PANTS_BOOTSTRAP}/${target_folder_name}" ]]; then
     (
+      green "Bootstrapping Pants using ${python}"
       local staging_dir
       staging_dir=$(tempdir "${PANTS_BOOTSTRAP}")
+
+      if ${python} -c "import venv" > /dev/null  2>&1; then
+        # It is safer and faster to use venv, so we do so when possible.
+        green "${python} has the venv module available, using it."
+        virtualenv_cmd="${python} -m venv"
+      else
+        # The venv module is not available, so download and use the virtualenv zipapp.
+        green "${python} does not have the venv module avilable, using virtualenv instead."
+        local virtualenv_path
+        virtualenv_path="$(bootstrap_virtualenv)"
+        virtualenv_cmd="${python} ${virtualenv_path} --no-download"
+      fi
+
+      green "Installing ${pants_requirement} into a virtual environment at ${PANTS_BOOTSTRAP}/${target_folder_name}"
       # shellcheck disable=SC2086
-      "${python}" -m venv "${staging_dir}/install" && \
+      eval "${virtualenv_cmd} ${staging_dir}/install" && \
       "${staging_dir}/install/bin/pip" install -U pip && \
       "${staging_dir}/install/bin/pip" install ${maybe_find_links} --progress-bar off "${pants_requirement}" && \
       ln -s "${staging_dir}/install" "${staging_dir}/${target_folder_name}" && \
