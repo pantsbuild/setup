@@ -228,8 +228,8 @@ function bootstrap_virtualenv {
         die "SHA256 of ${VIRTUALENV_ZIPAPP_URL} is not as expected. Aborting."
       fi
       green "SHA256 fingerprint of ${VIRTUALENV_ZIPAPP_URL} verified."
-      ln -s "${staging_dir}/${VIRTUALENV_ZIPAPP}" "${staging_dir}/latest"
-      mv "${staging_dir}/latest" "${bootstrapped}"
+      mv -f "${staging_dir}/${VIRTUALENV_ZIPAPP}" "${bootstrapped}"
+      rmdir "${staging_dir}"
     ) 1>&2 || exit 1
   fi
   echo "${bootstrapped}"
