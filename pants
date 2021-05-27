@@ -35,7 +35,8 @@ fi
 PANTS_BOOTSTRAP="${PANTS_SETUP_CACHE}/bootstrap-$(uname -s)-$(uname -m)"
 
 VIRTUALENV_ZIPAPP=virtualenv.pyz
-VIRTUALENV_ZIPAPP_URL="https://raw.githubusercontent.com/pypa/get-virtualenv/20.4.7/public/${VIRTUALENV_ZIPAPP}"
+VIRTUALENV_VERSION=20.4.7
+VIRTUALENV_ZIPAPP_URL="https://raw.githubusercontent.com/pypa/get-virtualenv/${VIRTUALENV_VERSION}/public/${VIRTUALENV_ZIPAPP}"
 VIRTUALENV_ZIPAPP_EXPECTED_SHA256="9d5c8b09cdeaf44414f07902d2ae45c4bb8a2085717d66f82ae389a9c6f94425"
 
 COLOR_RED="\x1b[31m"
@@ -214,8 +215,8 @@ EOF
 
 function bootstrap_virtualenv {
   local python="$1"
-  local bootstrapped="${PANTS_BOOTSTRAP}/${VIRTUALENV_ZIPAPP}"
-  if [[ ! -d "${bootstrapped}" ]]; then
+  local bootstrapped="${PANTS_BOOTSTRAP}/virtualenv-${VIRTUALENV_VERSION}/${VIRTUALENV_ZIPAPP}"
+  if [[ ! -f "${bootstrapped}" ]]; then
     (
       green "Downloading the virtualenv zipapp"
       mkdir -p "${PANTS_BOOTSTRAP}"
@@ -228,6 +229,7 @@ function bootstrap_virtualenv {
         die "SHA256 of ${VIRTUALENV_ZIPAPP_URL} is not as expected. Aborting."
       fi
       green "SHA256 fingerprint of ${VIRTUALENV_ZIPAPP_URL} verified."
+      mkdir -p "$(dirname "${bootstrapped}")"
       mv -f "${staging_dir}/${VIRTUALENV_ZIPAPP}" "${bootstrapped}"
       rmdir "${staging_dir}"
     ) 1>&2 || exit 1
