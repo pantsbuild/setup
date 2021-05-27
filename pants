@@ -279,7 +279,7 @@ function bootstrap_pants {
       virtualenv_path="$(bootstrap_virtualenv "${python}")" || exit 1
       green "Installing ${pants_requirement} into a virtual environment at ${bootstrapped}"
       # shellcheck disable=SC2086
-      ${python} "${virtualenv_path}" --no-download "${staging_dir}/install" && \
+      "${python}" "${virtualenv_path}" --no-download "${staging_dir}/install" && \
       "${staging_dir}/install/bin/pip" install -U pip && \
       "${staging_dir}/install/bin/pip" install ${maybe_find_links} --progress-bar off "${pants_requirement}" && \
       ln -s "${staging_dir}/install" "${staging_dir}/${target_folder_name}" && \
