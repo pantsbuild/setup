@@ -232,7 +232,7 @@ function bootstrap_virtualenv {
       fi
       ln -s "${staging_dir}/${VIRTUALENV_ZIPAPP}" "${staging_dir}/latest"
       mv "${staging_dir}/latest" "${PANTS_BOOTSTRAP}/${VIRTUALENV_ZIPAPP}"
-      green "SHA256 fingerprint of "${PANTS_BOOTSTRAP}/${VIRTUALENV_ZIPAPP}" verified."
+      green "SHA256 fingerprint of ${PANTS_BOOTSTRAP}/${VIRTUALENV_ZIPAPP} verified."
     ) 1>&2 || exit 1
   fi
   echo "${PANTS_BOOTSTRAP}/${VIRTUALENV_ZIPAPP}"
