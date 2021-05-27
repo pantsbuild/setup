@@ -34,12 +34,8 @@ fi
 
 PANTS_BOOTSTRAP="${PANTS_SETUP_CACHE}/bootstrap-$(uname -s)-$(uname -m)"
 
-# Note that this URL points to the zipapp for the latest version of virtualenv
-# that supports the Python version specified in the URL. So it can be set to
-# the lowest version of Python we support running Pants on.
-# See https://virtualenv.pypa.io/en/latest/installation.html#via-zipapp
 VIRTUALENV_ZIPAPP=virtualenv.pyz
-VIRTUALENV_ZIPAPP_URL="https://bootstrap.pypa.io/virtualenv/3.6/${VIRTUALENV_ZIPAPP}"
+VIRTUALENV_ZIPAPP_URL="https://raw.githubusercontent.com/pypa/get-virtualenv/20.4.7/public/${VIRTUALENV_ZIPAPP}"
 VIRTUALENV_ZIPAPP_EXPECTED_SHA256="9d5c8b09cdeaf44414f07902d2ae45c4bb8a2085717d66f82ae389a9c6f94425"
 
 COLOR_RED="\x1b[31m"
@@ -218,7 +214,8 @@ EOF
 
 function bootstrap_virtualenv {
   python="$1"
-  if [[ ! -d "${PANTS_BOOTSTRAP}/${VIRTUALENV_ZIPAPP}" ]]; then
+  bootstrapped="${PANTS_BOOTSTRAP}/${VIRTUALENV_ZIPAPP}"
+  if [[ ! -d "${bootstrapped}" ]]; then
     (
       green "Downloading the virtualenv zipapp"
       mkdir -p "${PANTS_BOOTSTRAP}"
@@ -228,14 +225,14 @@ function bootstrap_virtualenv {
       curl -LO "${VIRTUALENV_ZIPAPP_URL}"
       fingerprint="$(compute_sha256 "${python}" "${VIRTUALENV_ZIPAPP}")"
       if [[ "${VIRTUALENV_ZIPAPP_EXPECTED_SHA256}" != "${fingerprint}" ]]; then
-        die "SHA256 of ${staging_dir}/${VIRTUALENV_ZIPAPP} is not as expected. Aborting."
+        die "SHA256 of ${VIRTUALENV_ZIPAPP_URL} is not as expected. Aborting."
       fi
+      green "SHA256 fingerprint of ${VIRTUALENV_ZIPAPP_URL} verified."
       ln -s "${staging_dir}/${VIRTUALENV_ZIPAPP}" "${staging_dir}/latest"
-      mv "${staging_dir}/latest" "${PANTS_BOOTSTRAP}/${VIRTUALENV_ZIPAPP}"
-      green "SHA256 fingerprint of ${PANTS_BOOTSTRAP}/${VIRTUALENV_ZIPAPP} verified."
+      mv "${staging_dir}/latest" "${bootstrapped}"
     ) 1>&2 || exit 1
   fi
-  echo "${PANTS_BOOTSTRAP}/${VIRTUALENV_ZIPAPP}"
+  echo "${bootstrapped}"
 }
 
 function find_links_url {
