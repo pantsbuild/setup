@@ -213,8 +213,8 @@ EOF
 # functions.  Any tmp dir w/o a symlink pointing to it can go.
 
 function bootstrap_virtualenv {
-  python="$1"
-  bootstrapped="${PANTS_BOOTSTRAP}/${VIRTUALENV_ZIPAPP}"
+  local python="$1"
+  local bootstrapped="${PANTS_BOOTSTRAP}/${VIRTUALENV_ZIPAPP}"
   if [[ ! -d "${bootstrapped}" ]]; then
     (
       green "Downloading the virtualenv zipapp"
@@ -267,38 +267,27 @@ function bootstrap_pants {
    fi
   local python_major_minor_version
   python_major_minor_version="$(get_python_major_minor_version "${python}")"
-  local target_folder_name
-  target_folder_name="${pants_version}_py${python_major_minor_version}"
+  local target_folder_name="${pants_version}_py${python_major_minor_version}"
+  local bootstrapped="${PANTS_BOOTSTRAP}/${target_folder_name}"
 
-  if [[ ! -d "${PANTS_BOOTSTRAP}/${target_folder_name}" ]]; then
+  if [[ ! -d "${bootstrapped}" ]]; then
     (
       green "Bootstrapping Pants using ${python}"
       local staging_dir
       staging_dir=$(tempdir "${PANTS_BOOTSTRAP}")
-
-      if "${python}" -c "import venv" > /dev/null  2>&1; then
-        # It is safer and faster to use venv, so we do so when possible.
-        green "${python} has the venv module available, using it."
-        virtualenv_cmd="${python} -m venv"
-      else
-        # The venv module is not available, so download and use the virtualenv zipapp.
-        green "${python} does not have the venv module available, using virtualenv instead."
-        local virtualenv_path
-        virtualenv_path="$(bootstrap_virtualenv "${python}")" || exit 1
-        virtualenv_cmd="${python} ${virtualenv_path} --no-download"
-      fi
-
-      green "Installing ${pants_requirement} into a virtual environment at ${PANTS_BOOTSTRAP}/${target_folder_name}"
+      local virtualenv_path
+      virtualenv_path="$(bootstrap_virtualenv "${python}")" || exit 1
+      green "Installing ${pants_requirement} into a virtual environment at ${bootstrapped}"
       # shellcheck disable=SC2086
-      eval "${virtualenv_cmd} ${staging_dir}/install" && \
+      ${python} "${virtualenv_path}" --no-download "${staging_dir}/install" && \
       "${staging_dir}/install/bin/pip" install -U pip && \
       "${staging_dir}/install/bin/pip" install ${maybe_find_links} --progress-bar off "${pants_requirement}" && \
       ln -s "${staging_dir}/install" "${staging_dir}/${target_folder_name}" && \
-      mv "${staging_dir}/${target_folder_name}" "${PANTS_BOOTSTRAP}/${target_folder_name}" && \
-      green "New virtual environment successfully created at ${PANTS_BOOTSTRAP}/${target_folder_name}."
+      mv "${staging_dir}/${target_folder_name}" "${bootstrapped}" && \
+      green "New virtual environment successfully created at ${bootstrapped}."
     ) 1>&2 || exit 1
   fi
-  echo "${PANTS_BOOTSTRAP}/${target_folder_name}"
+  echo "${bootstrapped}"
 }
 
 # Ensure we operate from the context of the ./pants buildroot.
