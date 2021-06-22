@@ -50,7 +50,7 @@ class SmokeTester:
             return
 
         def is_compatible(pyenv_version: str) -> bool:
-            major, minor, _ = pyenv_version.split(".")
+            major, minor = pyenv_version.split(".")[:2]
             return f"{major}.{minor}" == python_version
 
         compatible_pyenv_version = next(
