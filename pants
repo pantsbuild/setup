@@ -263,7 +263,7 @@ function bootstrap_virtualenv {
       staging_dir=$(tempdir "${PANTS_BOOTSTRAP}")
       cd "${staging_dir}"
       echo "${VIRTUALENV_REQUIREMENTS}" > requirements.txt
-      "${python}" "${pex_path}" -r requirements.txt -c virtualenv -o virtualenv.pex --seed --venv
+      "${python}" "${pex_path}" -r requirements.txt -c virtualenv -o virtualenv.pex
       mkdir -p "$(dirname "${bootstrapped}")"
       mv -f "${staging_dir}/virtualenv.pex" "${bootstrapped}"
       rm -rf "${staging_dir}"
