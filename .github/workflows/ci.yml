@@ -1,0 +1,52 @@
+name: CI
+on: [push, pull_request]
+concurrency:
+  group: CI-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  PYTHON_VERSION: 3.9
+jobs:
+  org-check:
+    name: Check GitHub Organization
+    if: ${{ github.repository_owner == 'pantsbuild' }}
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Noop
+        run: "true"
+  checks:
+    name:  Lint and check formatting
+    needs: org-check
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Run Checks
+        uses: pantsbuild/actions/run-tox@95209b287c817c78a765962d40ac6cea790fc511
+        with:
+          tox-env: format-check,lint,typecheck
+  unit-tests:
+    name: (${{ matrix.os }}) Test
+    needs: org-check
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, macos-10.15, macos-11]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Expose Pythons
+        uses: pantsbuild/actions/expose-pythons@4c36480012d4d430c9d865222cdb2b6d91713acd
+      - name: Run Unit Tests
+        uses: pantsbuild/actions/run-tox@95209b287c817c78a765962d40ac6cea790fc511
+        with:
+          # We need to force pytest to use a terse base for its temp dirs or we hit errors like:
+          # 2020-02-23T16:14:47,808: [0x1139575c0] /private/var/folders/17/5mc7816d3mndxjqgplq6057w0000gn/T/pytest-of-travis/pytest-0/test_pants_1_260/project_dir/.pids/watchman/watchman.sock: path is too long
+          tox-env: test -- --basetemp=${HOME}/tmp
