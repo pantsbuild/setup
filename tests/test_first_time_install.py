@@ -9,6 +9,7 @@ import re
 import subprocess
 from pathlib import Path
 
+from colors import yellow
 from helpers import create_pants_config
 
 
@@ -84,4 +85,26 @@ def test_python2_fails(build_root: Path) -> None:
     assert (
         'For `pants_version = "1.30.1"`, Pants requires Python 3.6, 3.7, or 3.8 to run.'
         in result.stderr
+    )
+
+
+def test_pex_shrinkwrap_issues_105(build_root: Path) -> None:
+    create_pants_config(parent_folder=build_root, pants_version="1.30.1")
+    result = subprocess.run(
+        ["./pants", "--version"],
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        encoding="utf-8",
+        cwd=str(build_root),
+        env={
+            **os.environ,
+            "PEX_MODULE": "foo",
+            "PEX_SCRIPT": "bar",
+        },
+    )
+    stderr_lines = result.stderr.splitlines()
+    assert (
+        yellow("Scrubbing PEX_MODULE PEX_SCRIPT") in stderr_lines
+        or yellow("Scrubbing PEX_SCRIPT PEX_MODULE") in stderr_lines
     )
