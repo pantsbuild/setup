@@ -5,44 +5,53 @@
 import dataclasses
 import os
 import shlex
-import shutil
 import subprocess
+import sys
 import tempfile
 import textwrap
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable, Iterator, List, Mapping, Optional
+from typing import Any, Dict, Iterable, Iterator, List, Mapping, Optional
 
 import pytest
 from helpers import create_pants_config
 
 
-@pytest.fixture(scope="module")
-def pyenv_bin() -> str:
-    pyenv_bin = os.environ.get("PYENV_BIN") or shutil.which("pyenv")
-    if pyenv_bin is None:
-        raise ValueError(
-            "Pyenv must be installed. The binary `pyenv` must either be discoverable from "
-            "the `$PATH` or you must set the environment variable `PYENV_BIN`."
+@dataclass(frozen=True)
+class PythonVersion:
+    @classmethod
+    def extract(cls, python_exe_path: Path) -> Optional["PythonVersion"]:
+        result = subprocess.run(
+            args=[
+                str(python_exe_path.resolve()),
+                "-c",
+                "import sys; print('.'.join(map(str, sys.version_info[:2])))",
+            ],
+            encoding="utf-8",
+            stdout=subprocess.PIPE,
+            check=False,
         )
-    return pyenv_bin
+        if result.returncode != 0:
+            return None
+        major, minor = map(int, result.stdout.strip().split(".")[:2])
+        return cls(major=major, minor=minor)
 
+    major: int
+    minor: int
+    required: bool = True
 
-@pytest.fixture(scope="module")
-def pyenv_versions(pyenv_bin: str) -> List[str]:
-    return subprocess.run(
-        [pyenv_bin, "versions", "--bare", "--skip-aliases"],
-        stdout=subprocess.PIPE,
-        encoding="utf-8",
-        check=True,
-    ).stdout.splitlines()
+    def iter_basenames(self) -> Iterator[str]:
+        yield f"python{self.major}.{self.minor}"
+        yield f"python{self.major}"
+        yield "python"
+
+    def __str__(self) -> str:
+        return f"Python {self.major}.{self.minor}"
 
 
 @dataclass(frozen=True)
 class SmokeTester:
-    pyenv_bin: str
-    pyenv_versions: List[str]
     build_root: Path
 
     @dataclass(frozen=True)
@@ -66,42 +75,43 @@ class SmokeTester:
     @contextmanager
     def _maybe_setup_python(
         self,
-        python_version: Optional[str],
+        python_version: Optional[PythonVersion],
         *,
         alias: Optional[str] = None,
         bad_aliases: Optional[Mapping[str, str]] = None,
-    ) -> Iterator[PythonSetup]:
+    ) -> Iterator[Optional[PythonSetup]]:
         if python_version is None:
             yield self.PythonSetup()
             return
 
-        def is_compatible(pyenv_version: str) -> bool:
-            major, minor = pyenv_version.split(".")[:2]
-            return f"{major}.{minor}" == python_version
+        python_exe_paths = self.which(*python_version.iter_basenames(), fallible=True, all=True)
+        python_exe_path: Optional[Path] = None
+        attempts: Dict[Path, Optional[PythonVersion]] = {}
+        for path in python_exe_paths.values():
+            version = PythonVersion.extract(path)
+            if python_version == version:
+                python_exe_path = path
+                break
+            attempts[path] = version
 
-        compatible_pyenv_version = next(
-            (
-                pyenv_version
-                for pyenv_version in self.pyenv_versions
-                if is_compatible(pyenv_version)
-            ),
-            None,
-        )
-        if compatible_pyenv_version is None:
-            raise ValueError(
-                f"Python {python_version} is not installed via Pyenv. Please install with "
-                f"`pyenv install`. All installed versions: {', '.join(self.pyenv_versions)}."
+        if python_version.required and not python_exe_path:
+            versions = [f"{path}: {version or '<broken>'}" for path, version in attempts.items()]
+            raise AssertionError(
+                f"Testing requires {python_version} installed and available on the $PATH.\n"
+                "Found the following Python executables:\n"
+                f"{os.linesep.join(versions)}"
             )
-
-        if alias:
-            with self._setup_alias(compatible_pyenv_version, alias, bad_aliases) as python_setup:
+        elif not python_exe_path:
+            yield None
+        elif alias:
+            with self._setup_alias(python_exe_path, alias, bad_aliases) as python_setup:
                 yield python_setup
         else:
-            with self._run_pyenv_local(compatible_pyenv_version):
-                yield self.PythonSetup()
+            yield self.PythonSetup()
 
     @staticmethod
-    def which(*exe_names: str, fallible: bool = False) -> Mapping[str, Path]:
+    def which(*exe_names: str, fallible: bool = False, all: bool = False) -> Mapping[str, Path]:
+        which = "which -a" if all else "which"
         return {
             exe.name: exe
             for exe in map(
@@ -111,7 +121,7 @@ class SmokeTester:
                         "/usr/bin/env",
                         "bash",
                         "-c",
-                        f"command -v {' '.join(shlex.quote(exe_name) for exe_name in exe_names)}",
+                        f"{which} {' '.join(shlex.quote(exe_name) for exe_name in exe_names)}",
                     ],
                     check=not fallible,
                     stdout=subprocess.PIPE,
@@ -123,18 +133,12 @@ class SmokeTester:
 
     @contextmanager
     def _setup_alias(
-        self, python_version: str, alias: str, bad_aliases: Optional[Mapping[str, str]] = None
+        self, python_exe_path: Path, alias: str, bad_aliases: Optional[Mapping[str, str]] = None
     ) -> Iterator[PythonSetup]:
-        pyenv_root = Path(
-            subprocess.run([self.pyenv_bin, "root"], check=True, stdout=subprocess.PIPE)
-            .stdout.decode()
-            .strip()
-        )
         with tempfile.TemporaryDirectory(prefix="isolated.", suffix=".bin") as temp_dir:
             path_component = Path(temp_dir)
             python_alias = path_component / alias
-            pyenv_python_exe_path = pyenv_root / "versions" / python_version / "bin" / "python"
-            python_alias.symlink_to(pyenv_python_exe_path.resolve())
+            python_alias.symlink_to(python_exe_path.resolve())
 
             required_exes = self.which(
                 "as",
@@ -145,11 +149,13 @@ class SmokeTester:
                 "cut",
                 "dirname",
                 "gcc",
+                "head",
                 "ld",
                 "ln",
                 "mkdir",
                 "mktemp",
                 "mv",
+                "readlink",
                 "rm",
                 "rmdir",
                 "sed",
@@ -184,27 +190,11 @@ class SmokeTester:
                 extra_env={"PATH": temp_dir}, bad_python_exes=frozenset(bad_python_exes)
             )
 
-    @contextmanager
-    def _run_pyenv_local(self, python_version: str) -> Iterator[None]:
-        subprocess.run(
-            [self.pyenv_bin, "local", python_version],
-            cwd=str(self.build_root),
-            check=True,
-        )
-        try:
-            yield
-        finally:
-            subprocess.run(
-                [self.pyenv_bin, "local", "--unset", python_version],
-                cwd=str(self.build_root),
-                check=True,
-            )
-
     def smoke_test(
         self,
         *,
         pants_version: str,
-        python_version: Optional[str],
+        python_version: Optional[PythonVersion],
         alias: Optional[str] = None,
         bad_aliases: Optional[Mapping[str, str]] = None,
         sha: Optional[str] = None,
@@ -227,6 +217,10 @@ class SmokeTester:
         with self._maybe_setup_python(
             python_version, alias=alias, bad_aliases=bad_aliases
         ) as python_setup:
+            if python_setup is None:
+                print(f"{python_version} is not present, skipping test.", file=sys.stderr)
+                return
+
             create_pants_config(parent_folder=self.build_root, pants_version=pants_version)
             (self.build_root / "BUILD").write_text(
                 textwrap.dedent(
@@ -246,8 +240,9 @@ class SmokeTester:
             def run_binary_command(**kwargs: Any) -> None:
                 # Prevent the binary_command from seeing any bogus python interpreters we're using
                 # to test bootstrap.
+                assert python_setup is not None  # This is to help mypy figure things out.
                 with python_setup.deactivate_bad_aliases():
-                    run_command(binary_command, env=env)
+                    run_command(binary_command, **kwargs)
 
             env = {**env, **python_setup.extra_env}
             run_command(version_command, env=env)
@@ -259,24 +254,33 @@ class SmokeTester:
                 run_command(list_command, env=env_with_pantsd)
                 run_binary_command(env=env_with_pantsd)
 
-    def smoke_test_for_all_python_versions(self, *python_versions: str, pants_version: str) -> None:
+    def smoke_test_for_all_python_versions(
+        self, *python_versions: PythonVersion, pants_version: str
+    ) -> None:
         for python_version in python_versions:
             self.smoke_test(pants_version=pants_version, python_version=python_version)
 
 
+# We don't require Python 3.6 since it won't be patched to work on macOS 11:
+#   https://bugs.python.org/issue43470
+PY36 = PythonVersion(3, 6, required=False)
+PY37 = PythonVersion(3, 7)
+PY38 = PythonVersion(3, 8)
+
+
 @pytest.fixture
-def checker(pyenv_bin: str, pyenv_versions: List[str], build_root: Path) -> SmokeTester:
-    return SmokeTester(pyenv_bin=pyenv_bin, pyenv_versions=pyenv_versions, build_root=build_root)
+def checker(build_root: Path) -> SmokeTester:
+    return SmokeTester(build_root=build_root)
 
 
 def test_pants_1(checker: SmokeTester) -> None:
     checker.smoke_test(python_version=None, pants_version="1.30.4")
-    checker.smoke_test_for_all_python_versions("3.6", "3.7", "3.8", pants_version="1.30.4")
+    checker.smoke_test_for_all_python_versions(PY36, PY37, PY38, pants_version="1.30.4")
 
 
 def test_pants_2(checker: SmokeTester) -> None:
     checker.smoke_test(python_version=None, pants_version="2.3.0")
-    checker.smoke_test_for_all_python_versions("3.7", "3.8", pants_version="2.3.0")
+    checker.smoke_test_for_all_python_versions(PY37, PY38, pants_version="2.3.0")
 
 
 def test_pants_at_sha(checker: SmokeTester) -> None:
@@ -286,9 +290,9 @@ def test_pants_at_sha(checker: SmokeTester) -> None:
 
 
 def test_python_alias(checker: SmokeTester) -> None:
-    checker.smoke_test(python_version="3.6", pants_version="1.30.4", alias="python3")
+    checker.smoke_test(python_version=PY36, pants_version="1.30.4", alias="python3")
     checker.smoke_test(
-        python_version="3.7",
+        python_version=PY37,
         pants_version="2.3.0",
         alias="python",
         bad_aliases={"python3.7": "35", "python3": "27"},
