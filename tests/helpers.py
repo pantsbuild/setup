@@ -3,7 +3,6 @@
 
 from pathlib import Path
 from textwrap import dedent
-from typing import Any, Dict
 
 
 def create_pants_config(
