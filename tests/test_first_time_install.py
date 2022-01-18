@@ -9,6 +9,7 @@ import re
 import subprocess
 from pathlib import Path
 
+import pytest
 from colors import yellow
 from helpers import create_pants_config
 
@@ -108,3 +109,26 @@ def test_pex_shrinkwrap_issues_105(build_root: Path) -> None:
         yellow("Scrubbing PEX_MODULE PEX_SCRIPT") in stderr_lines
         or yellow("Scrubbing PEX_SCRIPT PEX_MODULE") in stderr_lines
     )
+
+
+@pytest.mark.parametrize(
+    ["quote", "suffix"],
+    [
+        pytest.param('"', " ", id="double quoted"),
+        pytest.param('"', "  # Because.", id="double quoted trailing comment"),
+        pytest.param("'", " ", id="single quoted"),
+        pytest.param("'", "  # You see...", id="single quoted trailing comment"),
+    ],
+)
+def test_pants_version_parsing_issues_103(build_root: Path, quote: str, suffix: str) -> None:
+    create_pants_config(
+        parent_folder=build_root, pants_version="1.30.1", quote=quote, suffix=suffix
+    )
+    result = subprocess.run(
+        ["./pants", "--version"],
+        check=True,
+        stdout=subprocess.PIPE,
+        encoding="utf-8",
+        cwd=str(build_root),
+    )
+    assert "1.30.1" == result.stdout.strip()
