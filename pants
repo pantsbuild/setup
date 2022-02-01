@@ -255,7 +255,7 @@ function bootstrap_pex {
       staging_dir=$(tempdir "${PANTS_BOOTSTRAP}")
       cd "${staging_dir}"
       curl --proto "=https" \
-           --tlsv1.3 \
+           --tlsv1.2 \
            --location \
            --remote-name \
            "${_PEX_URL}"
@@ -317,7 +317,7 @@ function get_version_for_sha {
   # Retrieve the Pants version associated with this commit.
   local pants_version
   pants_version="$(curl --proto "=https" \
-                        --tlsv1.3 \
+                        --tlsv1.2 \
                         --fail \
                         --silent \
                         --location \
