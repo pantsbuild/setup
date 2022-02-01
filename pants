@@ -254,7 +254,11 @@ function bootstrap_pex {
       local staging_dir
       staging_dir=$(tempdir "${PANTS_BOOTSTRAP}")
       cd "${staging_dir}"
-      curl -LO "${_PEX_URL}"
+      curl --proto "=https" \
+           --tlsv1.3 \
+           --location \
+           --remote-name \
+           "${_PEX_URL}"
       fingerprint="$(compute_sha256 "${python}" "pex")"
       if [[ "${_PEX_EXPECTED_SHA256}" != "${fingerprint}" ]]; then
         die "SHA256 of ${_PEX_URL} is not as expected. Aborting."
@@ -312,7 +316,12 @@ function get_version_for_sha {
 
   # Retrieve the Pants version associated with this commit.
   local pants_version
-  pants_version="$(curl --fail -sL "https://raw.githubusercontent.com/pantsbuild/pants/${sha}/src/python/pants/VERSION")"
+  pants_version="$(curl --proto "=https" \
+                        --tlsv1.3 \
+                        --fail \
+                        --silent \
+                        --location \
+                        "https://raw.githubusercontent.com/pantsbuild/pants/${sha}/src/python/pants/VERSION")"
 
   # Construct the version as the release version from src/python/pants/VERSION, plus the string `+gitXXXXXXXX`,
   # where the XXXXXXXX is the first 8 characters of the SHA.
