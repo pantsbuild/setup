@@ -23,7 +23,7 @@ def test_only_bootstraps_the_first_time(build_root: Path) -> None:
         encoding="utf-8",
         cwd=str(build_root),
     ).stderr
-    assert "Collecting pantsbuild.pants==" in first_run_pants_script_logging
+    assert "Bootstrapping Pants using" in first_run_pants_script_logging
     second_run_pants_script_logging = subprocess.run(
         ["./pants", "--version"],
         check=True,
@@ -31,7 +31,7 @@ def test_only_bootstraps_the_first_time(build_root: Path) -> None:
         encoding="utf-8",
         cwd=str(build_root),
     ).stderr
-    assert "Collecting pantsbuild.pants==" not in second_run_pants_script_logging
+    assert "Bootstrapping Pants using" not in second_run_pants_script_logging
 
 
 def test_relative_cache_locations_work(build_root: Path) -> None:
@@ -46,7 +46,7 @@ def test_relative_cache_locations_work(build_root: Path) -> None:
         env={**os.environ, "PANTS_SETUP_CACHE": "relative_dir"},
     )
     assert re.search(
-        r"virtual environment successfully created at .*/relative_dir/bootstrap.*/",
+        r"New virtual environment successfully created at .*/relative_dir/bootstrap.*/",
         result.stderr,
         flags=re.MULTILINE,
     )

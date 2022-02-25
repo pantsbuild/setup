@@ -256,6 +256,7 @@ function bootstrap_pex {
       cd "${staging_dir}"
       curl --proto "=https" \
            --tlsv1.2 \
+           --silent \
            --location \
            --remote-name \
            "${_PEX_URL}"
@@ -356,11 +357,11 @@ function bootstrap_pants {
       (
         scrub_PEX_env_vars
         # shellcheck disable=SC2086
-        "${python}" "${virtualenv_path}" --no-download "${staging_dir}/install" && \
+        "${python}" "${virtualenv_path}" --quiet --no-download "${staging_dir}/install" && \
         # Grab the latest pip, but don't advance setuptools past 58 which drops support for the
         # `setup` kwarg `use_2to3` which Pants 1.x sdist dependencies (pystache) use.
-        "${staging_dir}/install/bin/pip" install -U pip "setuptools<58" && \
-        "${staging_dir}/install/bin/pip" install ${maybe_find_links} --progress-bar off "${pants_requirement}"
+        "${staging_dir}/install/bin/pip" install --quiet -U pip "setuptools<58" && \
+        "${staging_dir}/install/bin/pip" install ${maybe_find_links} --quiet --progress-bar off "${pants_requirement}"
       ) && \
       ln -s "${staging_dir}/install" "${staging_dir}/${target_folder_name}" && \
       mv "${staging_dir}/${target_folder_name}" "${bootstrapped}" && \
