@@ -284,7 +284,7 @@ function scrub_env_vars {
   # are already installed.
   if [[ -n "$PYTHONPATH" ]]; then
     warn "Scrubbing PYTHONPATH"
-    unset PYTHONPATH
+    unset "PYTHONPATH"
   fi
 }
 
