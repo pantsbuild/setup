@@ -282,7 +282,7 @@ function scrub_env_vars {
   fi
   # Also ensure pip doesn't think packages on PYTHONPATH
   # are already installed.
-  if [[ -n "$PYTHONPATH" ]]; then
+  if [[ -n "${PYTHONPATH}" ]]; then
     warn "Scrubbing PYTHONPATH"
     unset "PYTHONPATH"
   fi
