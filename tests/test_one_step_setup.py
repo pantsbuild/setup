@@ -5,7 +5,6 @@
 https://www.pantsbuild.org/install.html#recommended-installation works as expected."""
 
 import os
-import re
 import subprocess
 from pathlib import Path
 
@@ -16,7 +15,7 @@ def test_runs_on_clean_directory(tmp_path: Path) -> None:
 
     proc = subprocess.run(
         ["/bin/bash", os.path.join(cwd, "one_step_setup.sh")],
-        cwd=tmp_path,    
+        cwd=tmp_path,
     )
 
     assert proc.returncode == 0
@@ -30,7 +29,7 @@ def test_fails_if_pants_script_present(tmp_path: Path) -> None:
 
     proc = subprocess.run(
         ["/bin/bash", os.path.join(cwd, "one_step_setup.sh")],
-        cwd=tmp_path,    
+        cwd=tmp_path,
     )
 
     assert proc.returncode == 1
@@ -44,7 +43,7 @@ def test_fails_if_pants_toml_present(tmp_path: Path) -> None:
 
     proc = subprocess.run(
         ["/bin/bash", os.path.join(cwd, "one_step_setup.sh")],
-        cwd=tmp_path,    
+        cwd=tmp_path,
     )
 
     assert proc.returncode == 1
