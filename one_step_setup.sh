@@ -8,15 +8,6 @@ function fail {
     exit 1
 }
 
-
-# `$PANTS_VERSION` must be set
-if [ -z "$PANTS_VERSION" ]
-then
-    echo \`\$PANTS_VERSION\` must be set. Finish installing Pants by re-running this script \
-        with \`PANTS_VERSION\` set. > /dev/stderr
-    fail
-fi
-
 # Make sure we don't override an existing Pants installation.
 if [ -f "pants.toml" ]
 then
@@ -36,6 +27,11 @@ then
         \`pants\` file. > /dev/stderr
     fail
 fi
+
+# Find the latest stable version from PyPI
+PANTS_VERSION=`curl https://pypi.org/pypi/pantsbuild.pants/json | \
+    grep -o '"version":"[^"]*"' | \
+    grep -o "[0-9]*\\.[0-9]*\\.[0-9]*"`
 
 # Create enough of a pants.toml file that our bootstrap process can run
 printf '[GLOBAL]\npants_version = "'$PANTS_VERSION'"\n' > pants.toml
@@ -57,5 +53,5 @@ fi
 
 # Let the user know that everything worked
 echo > /dev/stderr
-echo Pants was installed successfully! > /dev/stderr
+echo Pants was installed successfully\! > /dev/stderr
 echo > /dev/stderr
