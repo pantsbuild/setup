@@ -47,7 +47,7 @@ if [ $PANTS_VERSION != $PANTS_EXEC_VERSION ]
 then
     echo Pants was installed, but the version was $PANTS_EXEC_VERSION, not \
         $PANTS_VERSION. > /dev/stderr
-    echo > /dev/stderr
+    echo Consider filing an issue at https://github.com/pantsbuild/setup/issues/new > /dev/stderr
     fail
 fi
 
