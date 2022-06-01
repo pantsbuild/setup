@@ -1,8 +1,7 @@
-# Copyright 2019 Pants project contributors (see CONTRIBUTORS.md).
+# Copyright 2022 Pants project contributors (see CONTRIBUTORS.md).
 # Licensed under the Apache License, Version 2.0 (see LICENSE).
 
-"""Test that the first time installation flow described by
-https://www.pantsbuild.org/install.html#recommended-installation works as expected."""
+"""Test that the one-step setup flow described in Pants docs works as expected."""
 
 import os
 import subprocess
