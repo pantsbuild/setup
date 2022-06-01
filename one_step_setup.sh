@@ -28,10 +28,13 @@ then
     fail
 fi
 
-# Find the latest stable version from PyPI
-PANTS_VERSION=`curl https://pypi.org/pypi/pantsbuild.pants/json | \
-    grep -o '"version":"[^"]*"' | \
-    grep -o "[0-9]*\\.[0-9]*\\.[0-9]*"`
+# Find the latest stable version from PyPI if not set at the command line.
+if [ -z "$PANTS_VERSION" ]
+then
+    PANTS_VERSION=`curl https://pypi.org/pypi/pantsbuild.pants/json | \
+        grep -o '"version":"[^"]*"' | \
+        grep -o "[0-9]*\\.[0-9]*\\.[0-9]*"`
+fi
 
 # Create enough of a pants.toml file that our bootstrap process can run
 printf '[GLOBAL]\npants_version = "'$PANTS_VERSION'"\n' > pants.toml
