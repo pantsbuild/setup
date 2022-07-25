@@ -1,3 +1,4 @@
+
 name: CI
 on: [push, pull_request]
 concurrency:
@@ -37,7 +38,7 @@ jobs:
         os: [[ubuntu-20.04], [macos-10.15], [macos-11], [self-hosted, macOS11, ARM64]]
     steps:
       - name: Set ARCHFLAGS
-        if: matrix.os == [self-hosted, macOS11, ARM64]
+        if: self-hosted-macOS11-ARM64 == ${{ join(matrix.os, '-') }}
         run: |
           echo ARCHFLAGS="-arch arm64" >> $GITHUB_ENV
       - name: Checkout
