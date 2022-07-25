@@ -1,4 +1,3 @@
-
 name: CI
 on: [push, pull_request]
 concurrency:
@@ -44,10 +43,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Setup Python
+        if: self-hosted-macOS11-ARM64 == ${{ join(matrix.os, '-') }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Expose Pythons
+        if: self-hosted-macOS11-ARM64 == ${{ join(matrix.os, '-') }}
         uses: pantsbuild/actions/expose-pythons@4c36480012d4d430c9d865222cdb2b6d91713acd
       - name: Run Unit Tests
         uses: pantsbuild/actions/run-tox@95209b287c817c78a765962d40ac6cea790fc511
