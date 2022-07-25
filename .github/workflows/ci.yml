@@ -50,6 +50,11 @@ jobs:
       - name: Expose Pythons
         if: ${{ 'self-hosted-macOS11-ARM64' != join(matrix.os, '-') }}
         uses: pantsbuild/actions/expose-pythons@4c36480012d4d430c9d865222cdb2b6d91713acd
+      - name: Setup Pythons
+        if: ${{ 'self-hosted-macOS11-ARM64' == join(matrix.os, '-') }}
+        uses: gabrielfalcao/pyenv-action@v9
+        with:
+          default: 3.9.13
       - name: Run Unit Tests
         uses: pantsbuild/actions/run-tox@95209b287c817c78a765962d40ac6cea790fc511
         with:
