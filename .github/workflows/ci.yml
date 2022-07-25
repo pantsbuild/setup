@@ -41,7 +41,7 @@ jobs:
         run: |
           echo ARCHFLAGS="-arch arm64" >> $GITHUB_ENV
           echo PATH="$(pyenv root)/shims:${PATH}" >> $GITHUB_ENV
-          pyenv local $(python -c 'import sys; print(".".join(map(str, sys.version_info[:3])))')
+          pyenv local $(python${{ env.PYTHON_VERSION }} -c 'import sys; print(".".join(map(str, sys.version_info[:3])))')
       - name: Checkout
         uses: actions/checkout@v2
       - name: Setup Python
