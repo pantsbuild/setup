@@ -282,9 +282,11 @@ function bootstrap_pex {
 function scrub_env_vars {
   # Ensure the virtualenv PEX runs as shrink-wrapped.
   # See: https://github.com/pantsbuild/setup/issues/105
-  if [[ -n "${!PEX_@}" ]]; then
-    warn "Scrubbing ${!PEX_@}"
-    unset "${!PEX_@}"
+  local -r pex_env_vars=(${!PEX_@})
+  local -r pex_env_vars_to_scrub="${pex_env_vars[@]/PEX_ROOT}"
+  if [[ -n "${pex_env_vars_to_scrub[@]}" ]]; then
+    warn "Scrubbing ${pex_env_vars_to_scrub[@]}"
+    unset ${pex_env_vars_to_scrub[@]}
   fi
   # Also ensure pip doesn't think packages on PYTHONPATH
   # are already installed.
