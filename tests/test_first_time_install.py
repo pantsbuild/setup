@@ -132,3 +132,27 @@ def test_pants_version_parsing_issues_103(build_root: Path, quote: str, suffix: 
         cwd=str(build_root),
     )
     assert "1.30.1" == result.stdout.strip()
+
+
+def test_scrub_pex_vars(build_root: Path) -> None:
+    create_pants_config(parent_folder=build_root, pants_version="2.12.0")
+    os.environ["PEX_ROOT"] = str(build_root)
+    result = subprocess.run(
+        ["./pants", "--version"],
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        encoding="utf-8",
+        cwd=str(build_root),
+        env={
+            **os.environ,
+            "PEX_FOO": "pex_foo",
+            "PEX_BAR": "pex_bar",
+        },
+    )
+    stderr_lines = result.stderr.splitlines()
+    assert os.getenv("PEX_ROOT") == str(build_root)
+    assert (
+        yellow("Scrubbing PEX_FOO PEX_BAR ") in stderr_lines
+        or yellow("Scrubbing PEX_BAR PEX_FOO ") in stderr_lines
+    )
