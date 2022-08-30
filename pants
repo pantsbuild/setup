@@ -283,10 +283,12 @@ function scrub_env_vars {
   # Ensure the virtualenv PEX runs as shrink-wrapped.
   # See: https://github.com/pantsbuild/setup/issues/105
   local -r pex_env_vars=(${!PEX_@})
-  local -r pex_env_vars_to_scrub="${pex_env_vars[@]/PEX_ROOT}"
-  if [[ -n "${pex_env_vars_to_scrub[@]}" ]]; then
-    warn "Scrubbing ${pex_env_vars_to_scrub[@]}"
-    unset ${pex_env_vars_to_scrub[@]}
+  if [[ ! ${#pex_env_vars[@]} -eq 0 ]]; then
+    local -r pex_env_vars_to_scrub="${pex_env_vars[@]/PEX_ROOT}"
+    if [[ -n "${pex_env_vars_to_scrub[@]}" ]]; then
+      warn "Scrubbing ${pex_env_vars_to_scrub[@]}"
+      unset ${pex_env_vars_to_scrub[@]}
+    fi
   fi
   # Also ensure pip doesn't think packages on PYTHONPATH
   # are already installed.
