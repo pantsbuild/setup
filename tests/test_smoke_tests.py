@@ -204,6 +204,7 @@ class SmokeTester:
             env["PANTS_SHA"] = sha
         version_command = ["./pants", "--version"]
         list_command = ["./pants", "list", "::"]
+        bootstrap_cache_key_command = ["./pants", "bootstrap-cache-key"]
         if pants_version.startswith("1"):
             goal = "binary"
             tgt_type = "python_binary"
@@ -247,11 +248,13 @@ class SmokeTester:
             env = {**env, **python_setup.extra_env}
             run_command(version_command, env=env)
             run_command(list_command, env=env)
+            run_command(bootstrap_cache_key_command, env={**env, "PANTS_BOOTSTRAP_TOOLS": "1"})
             run_binary_command(env=env)
             if "SKIP_PANTSD_TESTS" not in env:
                 env_with_pantsd = {**env, "PANTS_ENABLE_PANTSD": "True"}
                 run_command(version_command, env=env_with_pantsd)
                 run_command(list_command, env=env_with_pantsd)
+                run_command(bootstrap_cache_key_command, env={**env, "PANTS_BOOTSTRAP_TOOLS": "1"})
                 run_binary_command(env=env_with_pantsd)
 
     def smoke_test_for_all_python_versions(
