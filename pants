@@ -387,6 +387,50 @@ function bootstrap_pants {
   echo "${bootstrapped}"
 }
 
+function run_bootstrap_tools {
+  # functionality for introspecting the bootstrapping process, without actually doing it
+
+  case "${1:-}" in
+    bootstrap-cache-key)
+      local pants_version=$(determine_pants_version)
+      local python="$(determine_python_exe "${pants_version}")"
+
+      local requirements_file="$(mktemp)"
+      echo "${VIRTUALENV_REQUIREMENTS}" > "${requirements_file}"
+      local virtualenv_requirements_sha256="$(compute_sha256 "${python}" "${requirements_file}")"
+      rm "${requirements_file}"
+
+      local parts=(
+        "os_name=$(uname -s)"
+        "arch=$(uname -m)"
+        "python_path=${python}"
+        # the full interpreter information, for maximum compatibility
+        "python_version=$("$python" --version)"
+        "pex_version=${_PEX_VERSION}"
+        "virtualenv_requirements_sha256=${virtualenv_requirements_sha256}"
+        "pants_version=${pants_version}"
+      )
+      echo "${parts[*]}"
+      ;;
+    help|"")
+      cat <<EOF
+Usage: PANTS_BOOTSTRAP_TOOLS=1 $0 ...
+
+Subcommands:
+  bootstrap-cache-key
+    print an opaque that can be used as a key for accurate and safe caching of the pants bootstrap directories
+EOF
+      ;;
+    *)
+      die "Unknown subcommand for bootstrap tools (due to PANTS_BOOTSTRAP_TOOLS=1): $1 "
+  esac
+}
+
+if [[ "${PANTS_BOOTSTRAP_TOOLS:-}" = 1 ]]; then
+    run_bootstrap_tools "$@"
+    exit 0
+fi
+
 # Ensure we operate from the context of the ./pants buildroot.
 cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 pants_version="$(determine_pants_version)"
