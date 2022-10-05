@@ -416,7 +416,7 @@ function run_bootstrap_tools {
       )
       echo "${parts[*]}"
       ;;
-    version)
+    bootstrap-version)
       echo "$SCRIPT_VERSION"
       ;;
     help|"")
@@ -426,7 +426,7 @@ Usage: PANTS_BOOTSTRAP_TOOLS=1 $0 ...
 Subcommands:
   bootstrap-cache-key
     print an opaque that can be used as a key for accurate and safe caching of the pants bootstrap directories
-  version
+  bootstrap-version
     print a version number for the bootstrap script itself
 EOF
       ;;
