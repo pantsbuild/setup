@@ -394,6 +394,9 @@ function run_bootstrap_tools {
     bootstrap-cache-key)
       local pants_version=$(determine_pants_version)
       local python="$(determine_python_exe "${pants_version}")"
+      # the python above may be a shim (e.g. pyenv or homebrew), so let's get the actual path, as
+      # will be symlinked in the virtualenv
+      local python_executable_path="$("${python}" -c 'import sys; print(sys.executable)')"
 
       local requirements_file="$(mktemp)"
       echo "${VIRTUALENV_REQUIREMENTS}" > "${requirements_file}"
@@ -404,6 +407,7 @@ function run_bootstrap_tools {
         "os_name=$(uname -s)"
         "arch=$(uname -m)"
         "python_path=${python}"
+        "python_executable_path=${python_executable_path}"
         # the full interpreter information, for maximum compatibility
         "python_version=$("$python" --version)"
         "pex_version=${_PEX_VERSION}"
