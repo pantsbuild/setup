@@ -68,6 +68,8 @@ COLOR_GREEN="\x1b[32m"
 COLOR_YELLOW="\x1b[33m"
 COLOR_RESET="\x1b[0m"
 
+INSTALL_URL="https://www.pantsbuild.org/docs/installation"
+
 function log() {
   echo -e "$@" 1>&2
 }
@@ -144,7 +146,7 @@ function determine_pants_version {
   if [[ -z "${pants_version}" ]]; then
     die "Please explicitly specify the \`pants_version\` in your \`pants.toml\` under the \`[GLOBAL]\` scope.
 See https://pypi.org/project/pantsbuild.pants/#history for all released versions
-and https://www.pantsbuild.org/docs/installation for more instructions."
+and $INSTALL_URL for more instructions."
   fi
   pants_major_version="$(echo "${pants_version}" | cut -d '.' -f1)"
   pants_minor_version="$(echo "${pants_version}" | cut -d '.' -f2)"
@@ -393,6 +395,10 @@ function bootstrap_pants {
 
 function run_bootstrap_tools {
   # functionality for introspecting the bootstrapping process, without actually doing it
+  if [[ "${PANTS_BOOTSTRAP_TOOLS}" -gt "$SCRIPT_VERSION" ]]; then
+      die "$0 script (bootstrap version $SCRIPT_VERSION) is too old for this invocation (with PANTS_BOOTSTRAP_TOOLS=${PANTS_BOOTSTRAP_TOOLS}).
+Please update it by following $INSTALL_URL"
+  fi
 
   case "${1:-}" in
     bootstrap-cache-key)
@@ -425,17 +431,29 @@ Usage: PANTS_BOOTSTRAP_TOOLS=1 $0 ...
 
 Subcommands:
   bootstrap-cache-key
-    print an opaque that can be used as a key for accurate and safe caching of the pants bootstrap directories
+    Print an opaque that can be used as a key for accurate and safe caching of
+    the pants bootstrap directories.
+
+    (Added in bootstrap version 1.)
+
   bootstrap-version
-    print a version number for the bootstrap script itself
+    Print a version number for the bootstrap script itself.
+
+    Distributed scripts (such as reusable CI formulae) that use these bootstrap
+    tools should set PANTS_BOOTSTRAP_TOOLS to the minimum script version for the
+    features they require. For example, if 'some-tool' was added in version 123:
+
+        PANTS_BOOTSTRAP_TOOLS=123 ./pants some-tool
+
+    (Added in bootstrap version 1.)
 EOF
       ;;
     *)
-      die "Unknown subcommand for bootstrap tools: $1. Do you mean to run without PANTS_BOOTSTRAP_TOOLS=1? Or, update this script (https://www.pantsbuild.org/docs/installation)?"
+      die "Unknown subcommand for bootstrap tools: $1. Do you mean to run without PANTS_BOOTSTRAP_TOOLS=1? Or, update this script ($INSTALL_URL)?"
   esac
 }
 
-if [[ "${PANTS_BOOTSTRAP_TOOLS:-}" = 1 ]]; then
+if [[ "${PANTS_BOOTSTRAP_TOOLS:-}" -gt 0 ]]; then
     run_bootstrap_tools "$@"
     exit 0
 fi

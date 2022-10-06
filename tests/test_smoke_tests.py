@@ -300,3 +300,18 @@ def test_python_alias(checker: SmokeTester) -> None:
         alias="python",
         bad_aliases={"python3.7": "35", "python3": "27"},
     )
+
+
+def test_bootstrap_tools_version_checking(checker: SmokeTester) -> None:
+    result = subprocess.run(
+        ["./pants", "bootstrap-version"],
+        check=False,
+        cwd=str(checker.build_root),
+        env={**os.environ, "PANTS_BOOTSTRAP_TOOLS": "987654321"},
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 1
+
+    assert result.stdout == ""
+    assert "is too old for this invocation (with PANTS_BOOTSTRAP_TOOLS=987654321)" in result.stderr
