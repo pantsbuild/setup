@@ -146,7 +146,7 @@ function determine_pants_version {
   if [[ -z "${pants_version}" ]]; then
     die "Please explicitly specify the \`pants_version\` in your \`pants.toml\` under the \`[GLOBAL]\` scope.
 See https://pypi.org/project/pantsbuild.pants/#history for all released versions
-and $INSTALL_URL for more instructions."
+and ${INSTALL_URL} for more instructions."
   fi
   pants_major_version="$(echo "${pants_version}" | cut -d '.' -f1)"
   pants_minor_version="$(echo "${pants_version}" | cut -d '.' -f2)"
@@ -395,9 +395,9 @@ function bootstrap_pants {
 
 function run_bootstrap_tools {
   # functionality for introspecting the bootstrapping process, without actually doing it
-  if [[ "${PANTS_BOOTSTRAP_TOOLS}" -gt "$SCRIPT_VERSION" ]]; then
-      die "$0 script (bootstrap version $SCRIPT_VERSION) is too old for this invocation (with PANTS_BOOTSTRAP_TOOLS=${PANTS_BOOTSTRAP_TOOLS}).
-Please update it by following $INSTALL_URL"
+  if [[ "${PANTS_BOOTSTRAP_TOOLS}" -gt "${SCRIPT_VERSION}" ]]; then
+      die "$0 script (bootstrap version ${SCRIPT_VERSION}) is too old for this invocation (with PANTS_BOOTSTRAP_TOOLS=${PANTS_BOOTSTRAP_TOOLS}).
+Please update it by following ${INSTALL_URL}"
   fi
 
   case "${1:-}" in
@@ -423,7 +423,7 @@ Please update it by following $INSTALL_URL"
       echo "${parts[*]}"
       ;;
     bootstrap-version)
-      echo "$SCRIPT_VERSION"
+      echo "${SCRIPT_VERSION}"
       ;;
     help|"")
       cat <<EOF
