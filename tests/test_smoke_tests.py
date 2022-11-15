@@ -299,7 +299,7 @@ def test_pants_at_sha(checker: SmokeTester) -> None:
 
 def test_pants_at_version(checker: SmokeTester) -> None:
     version = "2.3.0.dev6+gite4a00eb"
-    override_version = "2.13.0"
+    override_version = "2.4.0"
     checker.smoke_test(
         python_version=None, pants_version=version, override_version=override_version
     )
