@@ -198,10 +198,15 @@ class SmokeTester:
         alias: Optional[str] = None,
         bad_aliases: Optional[Mapping[str, str]] = None,
         sha: Optional[str] = None,
+        override_version: Optional[str] = None,
     ) -> None:
         env = {**os.environ}
         if sha:
             env["PANTS_SHA"] = sha
+
+        if override_version:
+            env["PANTS_VERSION"] = override_version
+
         version_command = ["./pants", "--version"]
         list_command = ["./pants", "list", "::"]
         bootstrap_cache_key_command = ["./pants", "bootstrap-cache-key"]
@@ -290,6 +295,14 @@ def test_pants_at_sha(checker: SmokeTester) -> None:
     sha = "e4a00eb2750d00371cfe1d438c872ec3ea926369"
     version = "2.3.0.dev6+gite4a00eb"
     checker.smoke_test(python_version=None, pants_version=version, sha=sha)
+
+
+def test_pants_at_version(checker: SmokeTester) -> None:
+    version = "2.3.0.dev6+gite4a00eb"
+    override_version = "2.13.0"
+    checker.smoke_test(
+        python_version=None, pants_version=version, override_version=override_version
+    )
 
 
 def test_python_alias(checker: SmokeTester) -> None:
