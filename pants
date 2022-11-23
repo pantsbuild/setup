@@ -487,7 +487,7 @@ python="$(determine_python_exe "${pants_version}")"
 pants_dir="$(bootstrap_pants "${pants_version}" "${python}" "${PANTS_SHA:-}" "${PANTS_DEBUG:-}")" || exit 1
 
 pants_python="${pants_dir}/bin/python"
-pants_binary="${pants_dir}/bin/pants"
+pants_binary=(${pants_dir}/bin/pants)
 pants_extra_args=""
 if [[ -n "${PANTS_SHA:-}" ]]; then
   pants_extra_args="${pants_extra_args} --python-repos-repos=$(find_links_url "$pants_version" "$PANTS_SHA")"
@@ -501,10 +501,10 @@ if [ -n "${PANTS_DEBUG:-}" ]; then
   fi
   # NB: We can't invoke `-m debugpy` as that'll prepend CWD to sys.path which might have unintended side-effects.
   # `-c` also prepends, but we strip that ourselves.
-  pants_debug_args=(-c "__import__(\"sys\").path.pop(0);__import__(\"debugpy.server.cli\").server.cli.main()" --listen 127.0.0.1:5678 --wait-for-client)
+  pants_binary=(-c "__import__(\"sys\").path.pop(0);__import__(\"debugpy.server.cli\").server.cli.main()" --listen 127.0.0.1:5678 --wait-for-client)
   echo "Will launch debugpy server at '127.0.0.1:5678' waiting for client connection."
 fi
 
 # shellcheck disable=SC2086
-exec "${pants_python}" "${pants_debug_args[@]-}" "${pants_binary}" ${pants_extra_args} \
+exec "${pants_python}" "${pants_binary[@]}" ${pants_extra_args} \
   --pants-bin-name="${PANTS_BIN_NAME}" --pants-version=${pants_version} "$@"
