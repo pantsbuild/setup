@@ -501,7 +501,7 @@ if [ -n "${PANTS_DEBUG:-}" ]; then
   fi
   # NB: We can't invoke `-m debugpy` as that'll prepend CWD to sys.path which might have unintended side-effects.
   # `-c` also prepends, but we strip that ourselves.
-  pants_binary=(-c "__import__(\"sys\").path.pop(0);__import__(\"debugpy.server.cli\").server.cli.main()" --listen 127.0.0.1:5678 --wait-for-client)
+  pants_binary=(-c "__import__(\"sys\").path.pop(0);__import__(\"debugpy.server.cli\").server.cli.main()" --listen 127.0.0.1:5678 --wait-for-client "${pants_binary[@]}")
   echo "Will launch debugpy server at '127.0.0.1:5678' waiting for client connection."
 fi
 
