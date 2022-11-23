@@ -382,7 +382,7 @@ function bootstrap_pants {
 
   local python_major_minor_version
   python_major_minor_version="$(get_python_major_minor_version "${python}")"
-  local target_folder_name="${pants_version}_py${python_major_minor_version}"
+  local target_folder_name="${pants_version}_py${python_major_minor_version}${debug_suffix}"
   local bootstrapped="${PANTS_BOOTSTRAP}/${target_folder_name}"
 
   if [[ ! -d "${bootstrapped}" ]]; then
