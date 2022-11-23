@@ -400,7 +400,7 @@ function bootstrap_pants {
         # Grab the latest pip, but don't advance setuptools past 58 which drops support for the
         # `setup` kwarg `use_2to3` which Pants 1.x sdist dependencies (pystache) use.
         "${staging_dir}/install/bin/pip" install --quiet -U pip "setuptools<58" && \
-        "${staging_dir}/install/bin/pip" install ${maybe_find_links} --quiet --progress-bar off "${pants_requirement}"
+        "${staging_dir}/install/bin/pip" install ${maybe_find_links} --quiet --progress-bar off ${pants_requirement}
       ) && \
       ln -s "${staging_dir}/install" "${staging_dir}/${target_folder_name}" && \
       mv "${staging_dir}/${target_folder_name}" "${bootstrapped}" && \
