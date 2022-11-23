@@ -362,6 +362,7 @@ function bootstrap_pants {
   local pants_version="$1"
   local python="$2"
   local pants_sha="${3:-}"
+  local pants_debug="${4:-}"
 
   local pants_requirement="pantsbuild.pants==${pants_version}"
   local maybe_find_links
@@ -369,7 +370,16 @@ function bootstrap_pants {
     maybe_find_links=""
   else
     maybe_find_links="--find-links=$(find_links_url "${pants_version}" "${pants_sha}")"
-   fi
+  fi
+
+  local debug_suffix
+  if [[ -z "${pants_debug}" ]]; then
+    debug_suffix=""
+  else
+    debug_suffix="-debug"
+    pants_requirement="${pants_requirement} debugpy==1.6.0"
+  fi
+
   local python_major_minor_version
   python_major_minor_version="$(get_python_major_minor_version "${python}")"
   local target_folder_name="${pants_version}_py${python_major_minor_version}"
@@ -474,7 +484,7 @@ fi
 cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 pants_version="$(determine_pants_version)"
 python="$(determine_python_exe "${pants_version}")"
-pants_dir="$(bootstrap_pants "${pants_version}" "${python}" "${PANTS_SHA:-}")" || exit 1
+pants_dir="$(bootstrap_pants "${pants_version}" "${python}" "${PANTS_SHA:-}" "${PANTS_DEBUG:-}")" || exit 1
 
 pants_python="${pants_dir}/bin/python"
 pants_binary="${pants_dir}/bin/pants"
@@ -483,6 +493,17 @@ if [[ -n "${PANTS_SHA:-}" ]]; then
   pants_extra_args="${pants_extra_args} --python-repos-repos=$(find_links_url "$pants_version" "$PANTS_SHA")"
 fi
 
+if [ -n "${PANTS_DEBUG:-}" ]; then
+  if [[ "$*" != *"--no-pantsd"* ]]; then
+    echo "Error! Must pass '--no-pantsd' when using PANTS_DEBUG"
+    exit 1
+  fi
+  # NB: We can't invoke `-m debugpy` as that'll prepend CWD to sys.path which might have unintended side-effects.
+  # `-c` also prepends, but we strip that ourselves.
+  DEBUG_ARGS=(-c "__import__(\"sys\").path.pop(0);__import__(\"debugpy.server.cli\").server.cli.main()" --listen 127.0.0.1:5678 --wait-for-client)
+  echo "Will launch debugpy server at '127.0.0.1:5678' waiting for client connection."
+fi
+
 # shellcheck disable=SC2086
-exec "${pants_python}" "${pants_binary}" ${pants_extra_args} \
+exec "${pants_python}" ${DEBUG_ARGS[@]} "${pants_binary}" ${pants_extra_args} \
   --pants-bin-name="${PANTS_BIN_NAME}" --pants-version=${pants_version} "$@"
