@@ -506,5 +506,5 @@ if [ -n "${PANTS_DEBUG:-}" ]; then
 fi
 
 # shellcheck disable=SC2086
-exec "${pants_python}" "${pants_debug_args[@]}" "${pants_binary}" ${pants_extra_args} \
+exec "${pants_python}" "${pants_debug_args[@]-}" "${pants_binary}" ${pants_extra_args} \
   --pants-bin-name="${PANTS_BIN_NAME}" --pants-version=${pants_version} "$@"
