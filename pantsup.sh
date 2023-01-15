@@ -4,23 +4,34 @@
 
 set -euo pipefail
 
-function log() {
-  echo -e "$@" >&2
-}
+COLOR_RED="\x1b[31m"
+COLOR_GREEN="\x1b[32m"
+COLOR_YELLOW="\x1b[33m"
+COLOR_RESET="\x1b[0m"
 
-function warn() {
-  log "WARNING: " "$@"
+function log() {
+  echo -e "$@" 1>&2
 }
 
 function die() {
-  log "$@"
+  (($# > 0)) && log "${COLOR_RED}$*${COLOR_RESET}"
   exit 1
+}
+
+function green() {
+  (($# > 0)) && log "${COLOR_GREEN}$*${COLOR_RESET}"
+}
+
+function warn() {
+  (($# > 0)) && log "${COLOR_YELLOW}$*${COLOR_RESET}"
 }
 
 function check_cmd() {
   local cmd="$1"
   command -v "$cmd" >/dev/null || die "This script requires the ${cmd} binary to be on the PATH."
 }
+
+help_url="https://www.pantsbuild.org/docs/getting-help"
 
 _GC=()
 
@@ -50,7 +61,7 @@ function calculate_os() {
     # Git bash reports something like: MINGW64_NT-10.0-22621
     echo windows
   else
-    die "Pants is not supported on this operating system (${os})."
+    die "Pants is not supported on this operating system (${os}). Please reach out to us at ${help_url} for help."
   fi
 }
 
@@ -126,7 +137,7 @@ function calculate_arch() {
   elif [[ "${arch}" =~ arm64|aarch64 ]]; then
     echo aarch64
   else
-    die "Pants is not supported for this chip architecture (${arch})."
+    die "Pants is not supported for this chip architecture (${arch}). Please reach out to us at ${help_url} for help."
   fi
 }
 
@@ -136,13 +147,12 @@ function usage() {
   cat <<EOF
 Usage: $0
 
-Installs pants.
+Installs the pants launcher binary.
 
-This actually installs the scie-pants binary, but names it "pants". You
-only need to run this once on a machine when you do not have "pants"
+You only need to run this once on a machine when you do not have "pants"
 available to run yet.
 
-The "pants" binary takes care of managing and running the underlying
+The pants binary takes care of managing and running the underlying
 Pants version configured in "pants.toml" in the surrounding Pants-using
 project.
 
@@ -159,8 +169,8 @@ Once installed, if you want to update your "pants" launcher binary, use
   The name to use for the scie-pants binary, "pants" by default.
 
 -V | --version:
-  The version of the scie-pants binary to install. The available
-  versions can be seen at:
+  The version of the scie-pants binary to install, the latest version by default.
+  The available versions can be seen at:
     https://github.com/pantsbuild/scie-pants/releases
 
 EOF
@@ -189,8 +199,7 @@ while (($# > 0)); do
       ;;
     *)
       usage
-      log "Unexpected argument $1\n"
-      exit 1
+      die "Unexpected argument $1\n"
       ;;
   esac
   shift
@@ -202,11 +211,8 @@ dest="${bin_dir}/${base_name}"
 
 log "Downloading and installing scie-pants release ..."
 install_from_url "${URL}" "${dest}"
-log "Installed scie-pants $(PANTS_BOOTSTRAP_VERSION=report "${dest}") from ${URL} to ${dest}"
+green "Installed scie-pants $(PANTS_BOOTSTRAP_VERSION=report "${dest}") from ${URL} to ${dest}"
 if ! command -v "${base_name}" >/dev/null; then
   warn "${dest} is not on the PATH."
   log "You'll either need to invoke ${dest} explicitly or else add ${bin_dir} to your shell's PATH."
 fi
-
-log "Launching ${base_name} ..."
-"${dest}" -V
