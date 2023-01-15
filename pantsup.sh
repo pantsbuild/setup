@@ -209,10 +209,13 @@ ARCH="$(calculate_arch)"
 URL="https://github.com/pantsbuild/scie-pants/releases/${version}/scie-pants-${OS}-${ARCH}"
 dest="${bin_dir}/${base_name}"
 
-log "Downloading and installing scie-pants release ..."
+log "Downloading and installing the pants launcher ..."
 install_from_url "${URL}" "${dest}"
-green "Installed scie-pants $(PANTS_BOOTSTRAP_VERSION=report "${dest}") from ${URL} to ${dest}"
+green "Installed the pants launcher from ${URL} to ${dest}"
 if ! command -v "${base_name}" >/dev/null; then
   warn "${dest} is not on the PATH."
   log "You'll either need to invoke ${dest} explicitly or else add ${bin_dir} to your shell's PATH."
 fi
+
+green "\nRunning \`pants\` in a Pants-enabled repo will use the version of Pants configured for that repo."
+green "In a repo not yet Pants-enabled, it will prompt you to set up Pants for that repo."

@@ -17,8 +17,8 @@ def test_installs_pants(tmp_path: Path) -> None:
     )
 
     assert proc.returncode == 0
-    assert b"Downloading scie-pants-" in proc.stderr
-    assert b"Verifying SHA256 of scie-pants-" in proc.stderr
+    assert b"Downloading and installing the pants launcher" in proc.stderr
+    assert b"Installed the pants launcher from" in proc.stderr
 
     bin_path = tmp_path / "bin" / "pants"
     assert os.path.isfile(bin_path)
