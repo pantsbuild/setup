@@ -26,6 +26,10 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Shellcheck
         run: shellcheck pantsup.sh
+      - uses: luizm/action-sh-checker@v0.5.0
+        with:
+          sh_checker_shellcheck_disable: true
+          sh_checker_checkbashisms_enable: true
       - name: Run Checks
         uses: pantsbuild/actions/run-tox@v2
         with:
