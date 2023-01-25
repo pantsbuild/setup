@@ -28,7 +28,7 @@ function warn() {
 
 function check_cmd() {
   local cmd="$1"
-  command -v "$cmd" >/dev/null || die "This script requires the ${cmd} binary to be on the PATH."
+  command -v "$cmd" > /dev/null || die "This script requires the ${cmd} binary to be on the PATH."
 }
 
 help_url="https://www.pantsbuild.org/docs/getting-help"
@@ -144,7 +144,7 @@ function calculate_arch() {
 check_cmd cat
 
 function usage() {
-  cat <<EOF
+  cat << EOF
 Usage: $0
 
 Installs the pants launcher binary.
@@ -212,7 +212,7 @@ dest="${bin_dir}/${base_name}"
 log "Downloading and installing the pants launcher ..."
 install_from_url "${URL}" "${dest}"
 green "Installed the pants launcher from ${URL} to ${dest}"
-if ! command -v "${base_name}" >/dev/null; then
+if ! command -v "${base_name}" > /dev/null; then
   warn "${dest} is not on the PATH."
   log "You'll either need to invoke ${dest} explicitly or else add ${bin_dir} to your shell's PATH."
 fi
