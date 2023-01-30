@@ -8,30 +8,17 @@ env:
 jobs:
   org-check:
     name: Check GitHub Organization
-    if: ${{ github.repository_owner == 'pantsbuild' }}
+    #if: ${{ github.repository_owner == 'pantsbuild' }}
     runs-on: ubuntu-20.04
     steps:
       - name: Noop
         run: "true"
-  checks:
-    name:  Lint and check formatting
-    needs: org-check
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-      - name: Shellcheck
-        run: shellcheck pantsup.sh
-      - name: Run Checks
-        uses: pantsbuild/actions/run-tox@v2
-        with:
-          tox-env: format-check,lint,typecheck
-  unit-tests:
-    name: (${{ matrix.os }}) Test
+  tests:
+    # It's only necessary to typecheck and lint on one platform, but those goals are so fast
+    # in this repo that a separate job for them would be almost entirely wasteful overhead,
+    # and logic to only run them in one of these matrixed jobs would be more complicated
+    # than it's worth.
+    name: (${{ matrix.os }}) Test, Typecheck and Lint
     needs: org-check
     runs-on: ${{ matrix.os }}
     strategy:
@@ -40,15 +27,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Setup Pants
+        uses: pantsbuild/actions/init-pants@v3-scie-pants
+        with:
+          gha-cache-key: v0-
+          named-caches-hash: ${{ hashFiles('tests/requirements.lock') }}
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Expose Pythons
         uses: pantsbuild/actions/expose-pythons@v2
-      - name: Run Unit Tests
-        uses: pantsbuild/actions/run-tox@v2
-        with:
-          # We need to force pytest to use a terse base for its temp dirs or we hit errors like:
-          # 2020-02-23T16:14:47,808: [0x1139575c0] /private/var/folders/17/5mc7816d3mndxjqgplq6057w0000gn/T/pytest-of-travis/pytest-0/test_pants_1_260/project_dir/.pids/watchman/watchman.sock: path is too long
-          tox-env: test -- --basetemp=${HOME}/tmp
+      - name: Run Tests
+        run: |
+          pants test check lint ::
