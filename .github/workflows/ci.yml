@@ -27,6 +27,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
       - name: Setup Pants
         uses: pantsbuild/actions/init-pants@v3-scie-pants
         with:
