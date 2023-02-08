@@ -30,7 +30,7 @@ jobs:
       - name: Setup Pants
         uses: pantsbuild/actions/init-pants@v4-scie-pants
         with:
-          gha-cache-key: v1
+          gha-cache-key: v2
           named-caches-hash: ${{ hashFiles('tests/requirements.lock') }}
       - name: Setup Python
         uses: actions/setup-python@v4
