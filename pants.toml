@@ -1,5 +1,6 @@
 [GLOBAL]
 pants_version = "2.15.0rc4"
+pantsd = false
 
 backend_packages.add = [
     "pants.backend.python",
