@@ -23,12 +23,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04, macos-11]
+        os: [ubuntu-20.04]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Setup Pants
-        uses: pantsbuild/actions/init-pants@v4-scie-pants
+        uses: benjyw/actions/init-pants@69afc8c4bcc9d677997092498b02890bf9ff8f5a
         with:
           gha-cache-key: v0
           named-caches-hash: ${{ hashFiles('tests/requirements.lock') }}
