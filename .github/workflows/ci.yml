@@ -27,12 +27,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
       - name: Setup Pants
-        uses: pantsbuild/actions/init-pants@v3-scie-pants
+        uses: pantsbuild/actions/init-pants@v4-scie-pants
         with:
-          gha-cache-key: v0-
+          gha-cache-key: v0
           named-caches-hash: ${{ hashFiles('tests/requirements.lock') }}
       - name: Setup Python
         uses: actions/setup-python@v4
