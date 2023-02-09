@@ -23,13 +23,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04]
+        os: [ubuntu-20.04, macos-11]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Set PANTS_SHA
-        run:
-          echo "PANTS_SHA=6889fefa39c0899eb020087f54d3b94529600e9e" >> ${GITHUB_ENV}
       - name: Setup Pants
         uses: pantsbuild/actions/init-pants@v4-scie-pants
         with:
