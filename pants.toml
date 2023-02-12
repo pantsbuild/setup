@@ -1,0 +1,42 @@
+[GLOBAL]
+pants_version = "2.15.0rc5"
+
+backend_packages.add = [
+    "pants.backend.python",
+    "pants.backend.python.lint.black",
+    "pants.backend.python.lint.flake8",
+    "pants.backend.python.lint.isort",
+    "pants.backend.python.typecheck.mypy",
+    "pants.backend.shell",
+    "pants.backend.shell.lint.shellcheck",
+    "pants.backend.shell.lint.shfmt",
+]
+
+[anonymous-telemetry]
+enabled = true
+repo_id = "9F90394C-959F-4045-9718-7EB1AEB2A9C7"
+
+[source]
+root_patterns = ["/", "tests"]
+
+[test]
+extra_env_vars = [
+    "PYENV_ROOT",
+    "HOME",
+    "PATH",
+]
+timeout_default = 600
+
+[shellcheck]
+args = ["--external-sources"]
+
+[shfmt]
+# See https://github.com/mvdan/sh/blob/master/cmd/shfmt/shfmt.1.scd#printer-flags.
+args = ["-i 2", "-ci", "-sr"]
+
+[python]
+interpreter_constraints = ["CPython==3.8.*"]
+enable_resolves = true
+
+[python.resolves]
+python-default = "tests/requirements.lock"
