@@ -110,7 +110,7 @@ function install_from_url() {
 
   local workdir
   workdir="$(mktemp -d)"
-  gc workdir
+  gc "${workdir}"
 
   fetch "${url}.sha256" "${workdir}"
   fetch "${url}" "${workdir}"
