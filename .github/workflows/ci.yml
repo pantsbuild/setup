@@ -27,6 +27,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Ensure default install path is on PATH
+        # Do this here so that we can change the path before updating the init-pants action.
+        run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
       - name: Setup Pants
         uses: pantsbuild/actions/init-pants@v4-scie-pants
         with:
