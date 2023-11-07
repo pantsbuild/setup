@@ -19,7 +19,7 @@ def test_installs_pants(tmp_path: Path) -> None:
     assert proc.returncode == 0
     assert b"Downloading and installing the pants launcher" in proc.stderr
     assert b"Installed the pants launcher from" in proc.stderr
-""
+
     bin_path = tmp_path / ".local" / "bin" / "pants"
     assert os.path.isfile(bin_path)
     assert os.access(bin_path, os.X_OK)
