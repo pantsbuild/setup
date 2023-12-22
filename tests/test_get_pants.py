@@ -11,7 +11,7 @@ from pathlib import Path
 def test_installs_pants(tmp_path: Path) -> None:
     cwd = os.getcwd()
     proc = subprocess.run(
-        ["/bin/bash", os.path.join(cwd, "pantsup.sh")],
+        ["/bin/bash", os.path.join(cwd, "get-pants.sh")],
         env={"HOME": str(tmp_path)},
         capture_output=True,
     )
