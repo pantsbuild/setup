@@ -3,23 +3,39 @@
 
 """Test the pantsup script."""
 
-import os
 import subprocess
 from pathlib import Path
+from typing import List, Optional
 
 
-def test_installs_pants(tmp_path: Path) -> None:
-    cwd = os.getcwd()
-    proc = subprocess.run(
-        ["/bin/bash", os.path.join(cwd, "get-pants.sh")],
-        env={"HOME": str(tmp_path)},
+def script_location() -> Path:
+    return Path(__file__).parent.parent / "get-pants.sh"
+
+
+def _run(home: Path, args: List[str], check: bool = True) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        ["/bin/bash", script_location(), *args],
+        env={"HOME": str(home)},
         capture_output=True,
+        check=check,
     )
 
-    assert proc.returncode == 0
+
+def _check_launcher_runs(destination: Path, expected_version: Optional[str] = None) -> None:
+    proc = subprocess.run(
+        destination, env={"PANTS_BOOTSTRAP_VERSION": "report"}, capture_output=True, check=True
+    )
+    if expected_version is not None:
+        assert proc.stdout.decode().strip() == expected_version
+    else:
+        # if we don't have a particular version, just verify that there's some output
+        assert proc.stdout
+
+
+def test_installs_pants_when_no_args(tmp_path: Path) -> None:
+    proc = _run(home=tmp_path, args=[])
+
     assert b"Downloading and installing the pants launcher" in proc.stderr
     assert b"Installed the pants launcher from" in proc.stderr
 
-    bin_path = tmp_path / ".local" / "bin" / "pants"
-    assert os.path.isfile(bin_path)
-    assert os.access(bin_path, os.X_OK)
+    _check_launcher_runs(tmp_path / ".local" / "bin" / "pants")
